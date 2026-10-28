@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1120">
+  <meta name="description" content="計算結果が大きい数式へフリック！45秒でスコアを競う、頭脳瞬発ゲーム。">
+  <title>数式フリック | 大きいのはどっち？</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a1120;
+      --panel: #111d31;
+      --line: #2a3b55;
+      --muted: #95a7c0;
+      --white: #f5f8ff;
+      --mint: #6df7c9;
+      --orange: #ffcb83;
+      --red: #ff7c98;
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 11% -5%, #1d4860 0, transparent 35%),
+        radial-gradient(circle at 91% 102%, #30264d 0, transparent 40%),
+        #0a1120;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      opacity: .12;
+      background-image: linear-gradient(#9cc7ed 1px, transparent 1px), linear-gradient(90deg,#9cc7ed 1px,transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, transparent, black 40%, transparent);
+      pointer-events: none;
+    }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 3px solid var(--mint); outline-offset: 4px; }
+    .shell { position: relative; max-width: 840px; min-height: 100svh; margin: auto; padding: 22px 28px 28px; display: flex; flex-direction: column; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 12px; letter-spacing: .23em; font-weight: 900; }
+    .logo { width: 39px; height: 39px; border: 1px solid #4d796f; border-radius: 12px; background: #1c3b40; display: grid; place-items: center; color: var(--mint); font-size: 21px; letter-spacing: 0; box-shadow: 0 0 25px #44e8c01b; }
+    .top-right { display: flex; align-items: center; gap: 10px; }
+    .top-tag { font-size: 11px; color: var(--muted); letter-spacing: .12em; }
+    .icon-btn { display: grid; place-items: center; width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 12px; color: var(--white); background: #17263a; font-size: 17px; transition: background .2s; }
+    .icon-btn:hover { background: #263952; }
+    .hero { text-align: center; margin-top: clamp(23px, 4vh, 42px); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #316c67; border-radius: 99px; padding: 6px 13px; color: var(--mint); font-size: 10px; font-weight: 800; letter-spacing: .17em; background: #173c423d; }
+    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
+    h1 { margin: 12px 0 5px; font-size: clamp(28px, 5vw, 44px); letter-spacing: -.065em; font-weight: 900; line-height: 1.35; }
+    h1 .accent { color: var(--mint); }
+    .subtitle { color: var(--muted); font-size: clamp(12px, 2vw, 14px); margin: 0; letter-spacing: .045em; }
+    .game { width: min(100%, 700px); margin: clamp(23px, 4vh, 36px) auto 0; }
+    .scorebar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat { padding: 13px 17px; border: 1px solid var(--line); border-radius: 16px; background: #152239de; min-height: 74px; box-shadow: inset 0 1px #ffffff06; }
+    .stat-label { font-size: 10px; color: var(--muted); letter-spacing: .16em; font-weight: 800; }
+    .stat-number { margin-top: 2px; font-size: clamp(21px, 4vw, 29px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .stat:first-child .stat-number { color: var(--mint); }
+    .stat:nth-child(2) .stat-number { color: var(--orange); }
+    .timebar { margin: 22px 2px 0; }
+    .timehead { display: flex; justify-content: space-between; align-items: end; margin-bottom: 9px; }
+    .timehead span { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+    .clock { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+    .clock.danger { color: var(--red); }
+    .track { height: 7px; width: 100%; border-radius: 99px; background: #2a3b52; overflow: hidden; }
+    .fill { width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #23cba8, #9ff8c7); box-shadow: 0 0 14px #5bf4bb75; transition: width .1s linear; }
+    .fill.danger { background: linear-gradient(90deg, #ff577c, #ffc087); box-shadow: 0 0 14px #ff577c75; }
+    .roundline { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 25px 1px 12px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .11em; }
+    .level { border: 1px solid #45626d; color: #b7e5de; background: #17333f; border-radius: 99px; padding: 5px 10px; font-size: 10px; letter-spacing: .07em; }
+    .arena { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; touch-action: pan-y; user-select: none; }
+    .math-card {
+      position: relative;
+      min-width: 0;
+      height: clamp(190px, 26vh, 245px);
+      padding: 20px 8px;
+      border: 1px solid #41627a;
+      border-radius: 22px;
+      color: var(--white);
+      background: linear-gradient(145deg, #22334b 0%, #15243b 65%, #132033 100%);
+      box-shadow: 0 12px 32px #00000024, inset 0 1px #ffffff12;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .math-card::after { content: ""; position: absolute; width: 130px; height: 130px; border-radius: 50%; top: -84px; right: -60px; border: 1px solid #8da9be15; box-shadow: 0 0 0 22px #8da9be07, 0 0 0 49px #8da9be05; pointer-events: none; }
+    .math-card:hover:not(:disabled) { transform: translateY(-3px); border-color: #75b8b8; box-shadow: 0 15px 38px #00000038; }
+    .math-card:active:not(:disabled) { transform: scale(.98); }
+    .card-top { z-index: 1; color: #aac0d9; font-size: 10px; font-weight: 900; letter-spacing: .2em; }
+    .formula {
+      z-index: 1;
+      max-width: 100%;
+      font-family: "Arial Rounded MT Bold", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+      font-size: clamp(24px, 4.8vw, 39px);
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -.055em;
+      text-align: center;
+      overflow-wrap: anywhere;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    .formula.long { font-size: clamp(19px, 3.7vw, 30px); }
+    .formula.very-long { font-size: clamp(16px, 3.15vw, 24px); }
+    .card-bottom { z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; color: var(--mint); font-size: 12px; font-weight: 900; }
+    .math-card.right .card-bottom { color: var(--orange); }
+    .math-card.correct { border-color: var(--mint); background: linear-gradient(145deg,#23695b,#153c41); box-shadow: 0 0 36px #5bf6ba38; }
+    .math-card.wrong { border-color: var(--red); background: linear-gradient(145deg,#713549,#3c243a); }
+    .math-card.reveal { border-color: var(--orange); }
+    .versus { position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 43px; height: 43px; display: grid; place-items: center; border: 4px solid var(--bg); background: #2b3851; border-radius: 50%; font-size: 12px; font-weight: 900; letter-spacing: -.04em; color: #d9e2f0; pointer-events: none; }
+    .result { min-height: 29px; margin: 14px auto 0; text-align: center; color: #9eb2ca; font-size: 13px; font-weight: 700; }
+    .result.good { color: var(--mint); }
+    .result.bad { color: var(--red); }
+    .instruction { display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 10px; margin: 11px auto 0; color: #8fa4bf; font-size: 12px; font-weight: 650; }
+    .instruction b { color: #d7e8f7; font-weight: 900; }
+    .key { border: 1px solid #40536b; border-bottom-width: 3px; background: #1c2c42; color: #d9e5f4; border-radius: 7px; padding: 2px 7px; font-size: 13px; }
+    .instructions-divider { width: 1px; height: 17px; background: #4d5870; }
+    .footer { margin-top: auto; padding-top: 22px; display: flex; justify-content: center; gap: 8px; color: #6e859e; font-size: 10px; letter-spacing: .08em; }
+    .overlay {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #07101dc4;
+      backdrop-filter: blur(12px);
+      overflow-y: auto;
+    }
+    .overlay.show { display: flex; }
+    .modal { position: relative; width: min(100%, 420px); border: 1px solid #416578; border-radius: 27px; padding: clamp(25px, 6vw, 38px); text-align: center; background: linear-gradient(145deg, #1c3349, #102138 78%); box-shadow: 0 30px 90px #0009, inset 0 1px #ffffff1a; overflow: hidden; }
+    .modal::before { content: ""; position: absolute; width: 230px; height: 230px; border-radius: 50%; top: -145px; left: calc(50% - 115px); background: #58eab93b; filter: blur(70px); pointer-events: none; }
+    .modal-mark { width: 64px; height: 64px; display: grid; place-items: center; margin: 0 auto 18px; border: 1px solid #65d6b3; border-radius: 18px; background: #1c584f; color: var(--mint); font-size: 32px; font-weight: 900; box-shadow: 0 8px 30px #42f3b31f; }
+    .modal-kicker { color: var(--mint); font-size: 11px; font-weight: 900; letter-spacing: .2em; }
+    .modal h2 { margin: 10px 0 12px; font-size: clamp(25px, 6vw, 33px); letter-spacing: -.06em; line-height: 1.4; }
+    .modal p { margin: 0; color: #b5c6d8; font-size: 13px; line-height: 1.9; }
+    .demo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 25px 0 18px; }
+    .demo-card { border-radius: 13px; border: 1px solid #496279; background: #22394f; padding: 13px 4px; font-size: 22px; font-weight: 900; }
+    .demo-card.win { border-color: var(--mint); background: #24584e; color: var(--mint); }
+    .demo-card small { display: block; margin-top: 5px; color: #aabbd1; font-size: 9px; letter-spacing: .1em; }
+    .tips { font-size: 11px !important; color: #8fa5bf !important; margin-bottom: 23px !important; }
+    .primary { display: block; width: 100%; border: 0; border-radius: 15px; padding: 17px; color: #07352e; background: linear-gradient(90deg, #61f0bf, #aeffd1); font-size: 16px; font-weight: 900; box-shadow: 0 12px 30px #45eab32f; transition: transform .15s, filter .15s; }
+    .primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .primary:active { transform: scale(.985); }
+    .best-label { margin-top: 17px; color: #92a9c2; font-size: 12px; }
+    .best-label b { color: var(--orange); font-size: 16px; }
+    .final-score { font-size: 64px; font-weight: 950; line-height: 1.1; color: var(--mint); letter-spacing: -.055em; margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
+    .end-stats { display: flex; justify-content: center; gap: 25px; margin: 22px 0 26px; }
+    .end-stat { color: var(--muted); font-size: 11px; }
+    .end-stat strong { display: block; margin-top: 5px; color: var(--white); font-size: 22px; }
+    @media (max-width: 520px) {
+      .shell { padding: 16px 16px 18px; }
+      .hero { margin-top: 21px; }
+      .game { margin-top: 22px; }
+      .top-tag { display: none; }
+      .stat { padding: 11px 12px; min-height: 65px; }
+      .scorebar { gap: 8px; }
+      .timebar { margin-top: 18px; }
+      .roundline { margin-top: 19px; }
+      .arena { gap: 10px; }
+      .math-card { height: clamp(190px, 29vh, 235px); border-radius: 19px; }
+      .instruction { font-size: 11px; gap: 7px; }
+      .footer { padding-top: 14px; }
+    }
+    @media (max-width: 375px) {
+      .formula { font-size: 23px; }
+      .formula.long { font-size: 18px; }
+      .formula.very-long { font-size: 15px; }
+      .stat-label { font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="logo" aria-hidden="true">≷</div><span>MATH / FLICK</span></div>
+      <div class="top-right"><span class="top-tag">BIGGER IS BETTER.</span><button id="soundBtn" class="icon-btn" type="button" aria-label="効果音をオンにする" title="効果音">♪̸</button></div>
+    </header>
+    <section class="hero" aria-label="ゲームタイトル">
+      <div class="eyebrow"><span class="pulse-dot"></span> QUICK MATH CHALLENGE</div>
+      <h1>大きいのは、<span class="accent">どっち？</span></h1>
+      <p class="subtitle">計算して、大きい方にフリック。</p>
+    </section>
+    <main class="game">
+      <div class="scorebar" aria-label="ゲームの記録">
+        <div class="stat"><div class="stat-label">SCORE</div><div class="stat-number" id="score">0</div></div>
+        <div class="stat"><div class="stat-label">COMBO</div><div class="stat-number" id="combo">0<span style="font-size:13px">連続</span></div></div>
+        <div class="stat"><div class="stat-label">BEST</div><div class="stat-number" id="best">0</div></div>
+      </div>
+      <div class="timebar">
+        <div class="timehead"><span>TIME LEFT</span><div id="clock" class="clock" aria-label="残り時間">0:45</div></div>
+        <div class="track" role="progressbar" aria-label="残り時間" aria-valuemin="0" aria-valuemax="45" aria-valuenow="45" id="timeTrack"><div class="fill" id="timeFill"></div></div>
+      </div>
+      <div class="roundline">
+        <span id="round">ROUND 01</span>
+        <span id="level" class="level">LEVEL 1 · ウォームアップ</span>
+      </div>
+      <section class="arena" id="arena" aria-label="大きい答えの数式を選ぶ">
+        <button class="math-card left" id="leftCard" type="button" aria-label="左の数式を選ぶ">
+          <span class="card-top">OPTION 01</span>
+          <span class="formula" id="leftFormula">8 ＋ 7</span>
+          <span class="card-bottom">← LEFT</span>
+        </button>
+        <div class="versus" aria-hidden="true">VS</div>
+        <button class="math-card right" id="rightCard" type="button" aria-label="右の数式を選ぶ">
+          <span class="card-top">OPTION 02</span>
+          <span class="formula" id="rightFormula">6 × 3</span>
+          <span class="card-bottom">RIGHT →</span>
+        </button>
+      </section>
+      <div id="result" class="result" role="status" aria-live="polite">どちらが大きい？</div>
+      <div class="instruction"><span>指で <b>← フリック →</b></span><span class="instructions-divider"></span><span>タップでもOK</span><span class="instructions-divider"></span><span class="key">←</span><span class="key">→</span></div>
+    </main>
+    <div class="footer"><span>45 SECOND MATH SPRINT</span><span>•</span><span>TRAIN YOUR INSTINCT</span></div>
+  </div>
+
+  <div class="overlay show" id="startOverlay">
+    <div class="modal">
+      <div class="modal-mark" aria-hidden="true">≷</div>
+      <div class="modal-kicker">READY, THINK, FLICK!</div>
+      <h2>大きい数式を<br>選び続けろ。</h2>
+      <p>左右の式を計算して、<br>答えが大きい方向へフリック！</p>
+      <div class="demo" aria-hidden="true"><div class="demo-card">8 ＋ 7<small>15</small></div><div class="demo-card win">6 × 3<small>18 ✓</small></div></div>
+      <p class="tips">45秒勝負 / 連続正解で高得点 / ミスは−3秒</p>
+      <button id="startBtn" class="primary" type="button">ゲームスタート　→</button>
+      <div class="best-label">自己ベスト <b id="startBest">0</b> pt</div>
+    </div>
+  </div>
+  <div class="overlay" id="endOverlay" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-mark" aria-hidden="true">★</div>
+      <div class="modal-kicker" id="endKicker">TIME UP!</div>
+      <h2 id="endTitle">おつかれさま！</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <p>POINTS</p>
+      <div class="end-stats">
+        <div class="end-stat">正解数<strong id="correctCount">0</strong></div>
+        <div class="end-stat">最高連続<strong id="maxCombo">0</strong></div>
+        <div class="end-stat">BEST<strong id="endBest">0</strong></div>
+      </div>
+      <button id="retryBtn" class="primary" type="button">もう一度挑戦　↻</button>
+    </div>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const $ = (id) => document.getElementById(id);
+      const DURATION = 45000;
+      const labels = ['ウォームアップ', 'スピード勝負', '応用計算', '難問ゾーン', 'エキスパート'];
+      const els = {
+        score: $('score'), combo: $('combo'), best: $('best'), clock: $('clock'),
+        timeFill: $('timeFill'), timeTrack: $('timeTrack'), round: $('round'), level: $('level'),
+        leftCard: $('leftCard'), rightCard: $('rightCard'), leftFormula: $('leftFormula'),
+        rightFormula: $('rightFormula'), result: $('result'), arena: $('arena'),
+        startOverlay: $('startOverlay'), endOverlay: $('endOverlay'), startBest: $('startBest')
+      };
+      const random = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+      const pick = (array) => array[random(0, array.length - 1)];
+      const safeBest = () => { try { return Number(localStorage.getItem('math-flick-best')) || 0; } catch { return 0; } };
+      const saveBest = (value) => { try { localStorage.setItem('math-flick-best', String(value)); } catch {} };
+      let state = { playing: false, busy: false, score: 0, streak: 0, maxStreak: 0, correct: 0, round: 1, pair: null, deadline: 0, timeLeft: DURATION, best: safeBest(), session: 0 };
+      let frame = 0;
+      let soundOn = false;
+      let audioContext = null;
+      let pointerStart = null;
+
+      function sound(good) {
+        if (!soundOn) return;
+        try {
+          const Context = window.AudioContext || window.webkitAudioContext;
+          if (!Context) return;
+          if (!audioContext) audioContext = new Context();
+          if (audioContext.state === 'suspended') audioContext.resume();
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          const now = audioContext.currentTime;
+          oscillator.type = good ? 'sine' : 'triangle';
+          oscillator.frequency.setValueAtTime(good ? 620 : 260, now);
+          oscillator.frequency.exponentialRampToValueAtTime(good ? 910 : 130, now + .11);
+          gain.gain.setValueAtTime(.10, now);
+          gain.gain.exponentialRampToValueAtTime(.001, now + .14);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now);
+          oscillator.stop(now + .15);
+        } catch {}
+      }
+      function makeExpression(n, level) {
+        const candidates = [];
+        candidates.push(() => {
+          const a = random(1, n - 1);
+          return { text: a + ' ＋ ' + (n - a), value: n };
+        });
+        candidates.push(() => {
+          const extra = random(2, level ? 35 : 15);
+          return { text: (n + extra) + ' − ' + extra, value: n };
+        });
+        if (level >= 1) {
+          candidates.push(() => {
+            const a = random(2, 9);
+            const b = random(2, Math.max(2, Math.floor((n - 1) / a)));
+            const c = n - a * b;
+            return c > 0 ? { text: a + ' × ' + b + ' ＋ ' + c, value: n } : null;
+          });
+          candidates.push(() => {
+            const a = random(2, 9);
+            const b = Math.ceil((n + random(1, 12)) / a);
+            const c = a * b - n;
+            return c > 0 ? { text: a + ' × ' + b + ' − ' + c, value: n } : null;
+          });
+        }
+        if (level >= 2) {
+          candidates.push(() => {
+            const c = random(1, n - 1);
+            const divisor = random(2, 6);
+            return { text: ((n - c) * divisor) + ' ÷ ' + divisor + ' ＋ ' + c, value: n };
+          });
+          candidates.push(() => {
+            const b = random(2, 8);
+            const c = random(2, Math.max(2, Math.floor((n - 1) / b)));
+            const a = n - b * c;
+            return a > 0 ? { text: a + ' ＋ ' + b + ' × ' + c, value: n } : null;
+          });
+        }
+        if (level >= 3) {
+          candidates.push(() => {
+            const divisors = [2,3,4,5,6,7,8].filter(d => n % d === 0 && n / d >= 3);
+            if (!divisors.length) return null;
+            const d = pick(divisors);
+            const a = random(1, n / d - 1);
+            return { text: '(' + a + ' ＋ ' + (n / d - a) + ') × ' + d, value: n };
+          });
+          candidates.push(() => {
+            const divisors = [2,3,4,5,6].filter(d => n % d === 0 && n / d >= 3);
+            if (!divisors.length) return null;
+            const d = pick(divisors);
+            const b = random(2, 12);
+            return { text: '(' + (n / d + b) + ' − ' + b + ') × ' + d, value: n };
+          });
+        }
+        if (level >= 4) {
+          candidates.push(() => {
+            const add = random(1, 8);
+            const divisors = [2,3,4,5,6].filter(d => (n - add) % d === 0 && (n - add) / d >= 3);
+            if (!divisors.length) return null;
+            const d = pick(divisors);
+            const a = random(1, (n - add) / d - 1);
+            const b = (n - add) / d - a;
+            return { text: '(' + a + ' ＋ ' + b + ') × ' + d + ' ＋ ' + add, value: n };
+          });
+        }
+        for (let attempt = 0; attempt < 14; attempt++) {
+          const expression = pick(candidates)();
+          if (expression) return expression;
+        }
+        return candidates[0]();
+      }
+      function generatePair() {
+        const level = Math.min(4, Math.floor(state.correct / 6));
+        const ranges = [[12,32],[24,65],[35,95],[45,120],[65,155]];
+        const gaps = [[3,14],[2,10],[2,7],[1,5],[1,4]];
+        const base = random(...ranges[level]);
+        const gap = random(...gaps[level]);
+        const high = base + gap;
+        const low = base;
+        const leftHigh = Math.random() < .5;
+        return {
+          left: makeExpression(leftHigh ? high : low, level),
+          right: makeExpression(leftHigh ? low : high, level),
+          answer: leftHigh ? 'left' : 'right',
+          level
+        };
+      }
+      function setFormula(element, expression) {
+        element.textContent = expression.text;
+        element.className = 'formula' + (expression.text.length > 17 ? ' very-long' : expression.text.length > 12 ? ' long' : '');
+      }
+      function updateHUD() {
+        els.score.textContent = state.score;
+        els.combo.innerHTML = state.streak + '<span style="font-size:13px">連続</span>';
+        els.best.textContent = state.best;
+        els.round.textContent = 'ROUND ' + String(state.round).padStart(2, '0');
+        els.level.textContent = 'LEVEL ' + (state.pair.level + 1) + ' · ' + labels[state.pair.level];
+      }
+      function showPair() {
+        state.pair = generatePair();
+        setFormula(els.leftFormula, state.pair.left);
+        setFormula(els.rightFormula, state.pair.right);
+        els.leftCard.className = 'math-card left';
+        els.rightCard.className = 'math-card right';
+        els.result.className = 'result';
+        els.result.textContent = 'どちらが大きい？';
+        state.busy = false;
+        updateHUD();
+      }
+      function renderClock() {
+        const seconds = Math.ceil(state.timeLeft / 1000);
+        els.clock.textContent = '0:' + String(Math.max(0, seconds)).padStart(2, '0');
+        els.timeFill.style.width = (Math.max(0, state.timeLeft) / DURATION * 100) + '%';
+        els.timeTrack.setAttribute('aria-valuenow', String(Math.ceil(state.timeLeft / 1000)));
+        const danger = seconds <= 10;
+        els.clock.classList.toggle('danger', danger);
+        els.timeFill.classList.toggle('danger', danger);
+      }
+      function tick() {
+        if (!state.playing) return;
+        state.timeLeft = Math.max(0, state.deadline - performance.now());
+        renderClock();
+        if (state.timeLeft <= 0) { finish(); return; }
+        frame = requestAnimationFrame(tick);
+      }
+      function choose(side) {
+        if (!state.playing || state.busy) return;
+        state.busy = true;
+        const isCorrect = side === state.pair.answer;
+        const selected = side === 'left' ? els.leftCard : els.rightCard;
+        const correctCard = state.pair.answer === 'left' ? els.leftCard : els.rightCard;
+        const leftValue = state.pair.left.value;
+        const rightValue = state.pair.right.value;
+        const currentSession = state.session;
+        if (isCorrect) {
+          state.streak++;
+          state.correct++;
+          state.maxStreak = Math.max(state.maxStreak, state.streak);
+          const points = 10 + Math.min(20, Math.floor((state.streak - 1) / 5) * 5);
+          state.score += points;
+          els.result.className = 'result good';
+          els.result.textContent = '正解！ +' + points + 'pt　' + leftValue + ' vs ' + rightValue;
+          selected.classList.add('correct');
+        } else {
+          state.streak = 0;
+          state.deadline -= 3000;
+          els.result.className = 'result bad';
+          els.result.textContent = '惜しい！ −3秒　' + leftValue + ' vs ' + rightValue;
+          selected.classList.add('wrong');
+          correctCard.classList.add('reveal');
+        }
+        sound(isCorrect);
+        if (navigator.vibrate) navigator.vibrate(isCorrect ? 18 : [45, 30, 45]);
+        updateHUD();
+        window.setTimeout(() => {
+          if (!state.playing || currentSession !== state.session) return;
+          state.round++;
+          showPair();
+        }, 340);
+      }
+      function start() {
+        cancelAnimationFrame(frame);
+        state.session++;
+        state.playing = true;
+        state.busy = false;
+        state.score = 0;
+        state.streak = 0;
+        state.maxStreak = 0;
+        state.correct = 0;
+        state.round = 1;
+        state.timeLeft = DURATION;
+        state.deadline = performance.now() + DURATION;
+        els.startOverlay.classList.remove('show');
+        els.endOverlay.classList.remove('show');
+        els.endOverlay.setAttribute('aria-hidden', 'true');
+        showPair();
+        renderClock();
+        frame = requestAnimationFrame(tick);
+      }
+      function finish() {
+        if (!state.playing) return;
+        state.playing = false;
+        state.session++;
+        cancelAnimationFrame(frame);
+        state.timeLeft = 0;
+        renderClock();
+        const newBest = state.score > state.best;
+        if (newBest) { state.best = state.score; saveBest(state.best); }
+        updateHUD();
+        $('endKicker').textContent = newBest ? 'NEW PERSONAL BEST!' : 'TIME UP!';
+        $('endTitle').textContent = newBest ? '自己ベスト更新！' : 'おつかれさま！';
+        $('finalScore').textContent = state.score;
+        $('correctCount').textContent = state.correct;
+        $('maxCombo').textContent = state.maxStreak;
+        $('endBest').textContent = state.best;
+        $('startBest').textContent = state.best;
+        els.endOverlay.classList.add('show');
+        els.endOverlay.setAttribute('aria-hidden', 'false');
+        $('retryBtn').focus();
+      }
+
+      $('startBtn').addEventListener('click', start);
+      $('retryBtn').addEventListener('click', start);
+      els.leftCard.addEventListener('click', () => choose('left'));
+      els.rightCard.addEventListener('click', () => choose('right'));
+      els.arena.addEventListener('pointerdown', (event) => {
+        if (!state.playing) return;
+        pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+      });
+      els.arena.addEventListener('pointerup', (event) => {
+        if (!pointerStart || pointerStart.id !== event.pointerId) return;
+        const dx = event.clientX - pointerStart.x;
+        const dy = event.clientY - pointerStart.y;
+        pointerStart = null;
+        if (Math.abs(dx) >= 35 && Math.abs(dx) > Math.abs(dy) * 1.2) choose(dx < 0 ? 'left' : 'right');
+      });
+      els.arena.addEventListener('pointercancel', () => { pointerStart = null; });
+      document.addEventListener('keydown', (event) => {
+        if (!state.playing) return;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          choose(event.key === 'ArrowLeft' ? 'left' : 'right');
+        }
+      });
+      $('soundBtn').addEventListener('click', () => {
+        soundOn = !soundOn;
+        $('soundBtn').textContent = soundOn ? '♪' : '♪̸';
+        $('soundBtn').setAttribute('aria-label', soundOn ? '効果音をオフにする' : '効果音をオンにする');
+        if (soundOn) sound(true);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (!state.playing) return;
+        if (document.hidden) {
+          cancelAnimationFrame(frame);
+          state.timeLeft = Math.max(0, state.deadline - performance.now());
+        } else {
+          if (state.timeLeft <= 0) finish();
+          else frame = requestAnimationFrame(tick);
+        }
+      });
+      els.best.textContent = state.best;
+      $('startBest').textContent = state.best;
+      renderClock();
+    })();
+  </script>
+</body>
+</html>
