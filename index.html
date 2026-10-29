@@ -3,543 +3,665 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0a1120">
-  <meta name="description" content="計算結果が大きい数式へフリック！45秒でスコアを競う、頭脳瞬発ゲーム。">
-  <title>数式フリック | 大きいのはどっち？</title>
+  <meta name="theme-color" content="#081321">
+  <meta name="description" content="大きい数式を選んで紙くずをフリック。炎を上げてゴミ箱を進化させる45秒の計算アーケード。">
+  <title>数式フリック | FIRE BIN</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0a1120;
-      --panel: #111d31;
-      --line: #2a3b55;
-      --muted: #95a7c0;
-      --white: #f5f8ff;
-      --mint: #6df7c9;
-      --orange: #ffcb83;
-      --red: #ff7c98;
-      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+      --bg: #081321;
+      --text: #f5f8ff;
+      --muted: #91a8ba;
+      --line: #284256;
+      --mint: #6ef3c6;
+      --gold: #ffc46a;
+      --red: #fa8196;
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
     html { min-height: 100%; background: var(--bg); }
     body {
-      margin: 0;
-      min-height: 100svh;
-      color: var(--white);
-      background:
-        radial-gradient(circle at 11% -5%, #1d4860 0, transparent 35%),
-        radial-gradient(circle at 91% 102%, #30264d 0, transparent 40%),
-        #0a1120;
-      overflow-x: hidden;
+      min-height: 100svh; margin: 0; color: var(--text); overflow-x: hidden;
+      background: radial-gradient(circle at 50% -11%, #224a56 0, transparent 39%),
+                  radial-gradient(circle at 98% 80%, #283653 0, transparent 38%),
+                  linear-gradient(145deg, #091625, #09111e 70%);
     }
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      opacity: .12;
-      background-image: linear-gradient(#9cc7ed 1px, transparent 1px), linear-gradient(90deg,#9cc7ed 1px,transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, transparent, black 40%, transparent);
-      pointer-events: none;
+      content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .09;
+      background-image: linear-gradient(#94c6cc 1px, transparent 1px),linear-gradient(90deg,#94c6cc 1px,transparent 1px);
+      background-size: 48px 48px; mask-image: linear-gradient(transparent 0%, black 40%, transparent 90%);
     }
     button { font: inherit; cursor: pointer; }
     button:focus-visible { outline: 3px solid var(--mint); outline-offset: 4px; }
-    .shell { position: relative; max-width: 840px; min-height: 100svh; margin: auto; padding: 22px 28px 28px; display: flex; flex-direction: column; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 12px; letter-spacing: .23em; font-weight: 900; }
-    .logo { width: 39px; height: 39px; border: 1px solid #4d796f; border-radius: 12px; background: #1c3b40; display: grid; place-items: center; color: var(--mint); font-size: 21px; letter-spacing: 0; box-shadow: 0 0 25px #44e8c01b; }
-    .top-right { display: flex; align-items: center; gap: 10px; }
-    .top-tag { font-size: 11px; color: var(--muted); letter-spacing: .12em; }
-    .icon-btn { display: grid; place-items: center; width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 12px; color: var(--white); background: #17263a; font-size: 17px; transition: background .2s; }
-    .icon-btn:hover { background: #263952; }
-    .hero { text-align: center; margin-top: clamp(23px, 4vh, 42px); }
-    .eyebrow { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #316c67; border-radius: 99px; padding: 6px 13px; color: var(--mint); font-size: 10px; font-weight: 800; letter-spacing: .17em; background: #173c423d; }
-    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
-    h1 { margin: 12px 0 5px; font-size: clamp(28px, 5vw, 44px); letter-spacing: -.065em; font-weight: 900; line-height: 1.35; }
-    h1 .accent { color: var(--mint); }
-    .subtitle { color: var(--muted); font-size: clamp(12px, 2vw, 14px); margin: 0; letter-spacing: .045em; }
-    .game { width: min(100%, 700px); margin: clamp(23px, 4vh, 36px) auto 0; }
-    .scorebar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .stat { padding: 13px 17px; border: 1px solid var(--line); border-radius: 16px; background: #152239de; min-height: 74px; box-shadow: inset 0 1px #ffffff06; }
-    .stat-label { font-size: 10px; color: var(--muted); letter-spacing: .16em; font-weight: 800; }
-    .stat-number { margin-top: 2px; font-size: clamp(21px, 4vw, 29px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.2; }
-    .stat:first-child .stat-number { color: var(--mint); }
-    .stat:nth-child(2) .stat-number { color: var(--orange); }
-    .timebar { margin: 22px 2px 0; }
-    .timehead { display: flex; justify-content: space-between; align-items: end; margin-bottom: 9px; }
-    .timehead span { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .12em; }
-    .clock { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
-    .clock.danger { color: var(--red); }
-    .track { height: 7px; width: 100%; border-radius: 99px; background: #2a3b52; overflow: hidden; }
-    .fill { width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #23cba8, #9ff8c7); box-shadow: 0 0 14px #5bf4bb75; transition: width .1s linear; }
-    .fill.danger { background: linear-gradient(90deg, #ff577c, #ffc087); box-shadow: 0 0 14px #ff577c75; }
-    .roundline { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 25px 1px 12px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .11em; }
-    .level { border: 1px solid #45626d; color: #b7e5de; background: #17333f; border-radius: 99px; padding: 5px 10px; font-size: 10px; letter-spacing: .07em; }
-    .arena { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; touch-action: pan-y; user-select: none; }
-    .math-card {
-      position: relative;
-      min-width: 0;
-      height: clamp(190px, 26vh, 245px);
-      padding: 20px 8px;
-      border: 1px solid #41627a;
-      border-radius: 22px;
-      color: var(--white);
-      background: linear-gradient(145deg, #22334b 0%, #15243b 65%, #132033 100%);
-      box-shadow: 0 12px 32px #00000024, inset 0 1px #ffffff12;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      overflow: hidden;
-      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
-      -webkit-tap-highlight-color: transparent;
+    .app { position: relative; max-width: 900px; min-height: 100svh; margin: auto; padding: 21px 25px 20px; display: flex; flex-direction: column; }
+    .masthead { display:flex; justify-content:space-between; align-items:center; gap: 10px; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:950; font-size:12px; letter-spacing:.18em; }
+    .mark { display:grid; place-items:center; width:39px; height:39px; border:1px solid #56887c; border-radius:12px; color:#8af8d3; background:linear-gradient(145deg,#285354,#17323f); box-shadow:0 0 24px #58dfb526; }
+    .mark svg { width:21px; height:23px; }
+    .mast-actions { display:flex; align-items:center; gap:13px; }
+    .edition { color:#7698a8; font-size:10px; font-weight:800; letter-spacing:.18em; }
+    .sound { width:39px; height:39px; display:grid; place-items:center; border:1px solid var(--line); border-radius:12px; background:#183044; color:#bdd6e4; font-size:17px; transition:background .18s; }
+    .sound:hover { background:#24455a; }
+    .title-area { text-align:center; margin: 15px auto 20px; }
+    .kicker { font-size:10px; letter-spacing:.27em; color:var(--mint); font-weight:900; }
+    h1 { font-size:clamp(26px,4.5vw,40px); line-height:1.35; letter-spacing:-.065em; margin:5px 0 3px; font-weight:950; }
+    h1 em { color:var(--mint); font-style:normal; }
+    .subhead { color:var(--muted); font-size:12px; letter-spacing:.04em; margin:0; }
+    main { width:min(100%,760px); margin:0 auto; }
+    .hud { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .hud-cell { border:1px solid #2c4b5b; background:#15283bdc; border-radius:15px; min-height:70px; padding:11px 15px; box-shadow:inset 0 1px #ffffff09; }
+    .hud-label { font-size:9px; font-weight:900; letter-spacing:.18em; color:#7899aa; }
+    .hud-value { font-size:clamp(23px,4vw,28px); font-weight:950; line-height:1.3; font-variant-numeric:tabular-nums; letter-spacing:-.035em; }
+    .hud-cell:first-child .hud-value { color:var(--mint); }
+    .hud-cell:nth-child(2) .hud-value { color:var(--gold); }
+    .hud-unit { color:#a4bac8; font-size:11px; margin-left:3px; letter-spacing:0; }
+    .timer-area { display:flex; align-items:center; gap:13px; margin:14px 3px 13px; }
+    .timer-label { color:#8baabb; font-size:10px; font-weight:900; letter-spacing:.12em; white-space:nowrap; }
+    .timer-track { flex:1; height:7px; border-radius:50px; background:#233c4f; overflow:hidden; }
+    .timer-fill { width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#31d6a9,#a6ffce); box-shadow:0 0 15px #69f6bc5c; }
+    .timer-fill.danger { background:linear-gradient(90deg,#f36b83,#ffbf76); }
+    .timer-value { font-size:18px; font-weight:950; font-variant-numeric:tabular-nums; min-width:50px; text-align:right; }
+    .timer-value.danger { color:var(--red); }
+    .arena {
+      --bin-hi:#a8bdcc; --bin-main:#627c90; --bin-dark:#344e61; --bin-edge:#c3d7e2; --bin-glow:#7fa6b844;
+      position:relative; height:clamp(390px,48vh,470px); isolation:isolate; overflow:hidden; border:1px solid #36586a;
+      border-radius:26px; background:
+        radial-gradient(ellipse at 50% 82%,#1b4852 0,transparent 49%),
+        linear-gradient(180deg,#10273b 0%,#0d2233 52%,#0a1a2b 100%);
+      box-shadow:inset 0 1px #ffffff1c,0 18px 45px #0004;
+      touch-action:pan-y; user-select:none; -webkit-tap-highlight-color:transparent;
     }
-    .math-card::after { content: ""; position: absolute; width: 130px; height: 130px; border-radius: 50%; top: -84px; right: -60px; border: 1px solid #8da9be15; box-shadow: 0 0 0 22px #8da9be07, 0 0 0 49px #8da9be05; pointer-events: none; }
-    .math-card:hover:not(:disabled) { transform: translateY(-3px); border-color: #75b8b8; box-shadow: 0 15px 38px #00000038; }
-    .math-card:active:not(:disabled) { transform: scale(.98); }
-    .card-top { z-index: 1; color: #aac0d9; font-size: 10px; font-weight: 900; letter-spacing: .2em; }
+    .arena[data-tier="1"] { --bin-hi:#e1f6ff; --bin-main:#8cbdce; --bin-dark:#4b829b; --bin-edge:#f0ffff; --bin-glow:#80d9ef6b; }
+    .arena[data-tier="2"] { --bin-hi:#fff1ab; --bin-main:#e4ad4c; --bin-dark:#976225; --bin-edge:#ffeaa0; --bin-glow:#ffc35670; }
+    .arena[data-tier="3"] { --bin-hi:#ffefb8; --bin-main:#c59df0; --bin-dark:#7652a3; --bin-edge:#f7daff; --bin-glow:#b999ff80; }
+    .arena[data-tier="4"] { --bin-hi:#fff9dd; --bin-main:#f0c967; --bin-dark:#c58d38; --bin-edge:#ffffff; --bin-glow:#f5e9a18e; }
+    .arena::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:-1; opacity:.26; background-image:radial-gradient(#d5f3db 1px,transparent 1px); background-size:31px 29px; mask-image:linear-gradient(transparent,black 35%,transparent 78%); }
+    .arena::after { content:""; position:absolute; left:-20%; right:-20%; bottom:-77px; height:180px; border-radius:50% 50% 0 0; border-top:2px solid #3d7779; background:repeating-linear-gradient(90deg,transparent 0 66px,#69c5b313 67px 68px),linear-gradient(180deg,#15374791,#071723); pointer-events:none; z-index:-1; }
+    .arena-hood { display:flex; position:absolute; top:14px; left:17px; right:17px; justify-content:space-between; align-items:center; gap:8px; z-index:4; font-size:10px; letter-spacing:.12em; font-weight:900; color:#8cacbd; pointer-events:none; }
+    .signal { display:flex; align-items:center; gap:7px; }
+    .signal-dot { height:6px; width:6px; border-radius:50%; background:var(--mint); box-shadow:0 0 10px var(--mint); }
+    .level-pill { border:1px solid #426f73; border-radius:30px; background:#1c4a4a99; padding:5px 9px; font-size:9px; color:#a9e8d6; }
+    .lane-split { position:absolute; z-index:0; top:75px; bottom:100px; width:1px; left:50%; background:linear-gradient(transparent,#47718372,transparent); pointer-events:none; }
+    .lanes { position:relative; height:100%; padding:45px 15px 0; display:grid; grid-template-columns:1fr 1fr; gap:16px; z-index:2; }
+    .lane { position:relative; min-width:0; padding:2px 8px 0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; background:transparent; border:0; border-radius:22px; color:var(--text); transition:background .16s; }
+    .lane:hover:not(:disabled) { background:linear-gradient(180deg,#a3e8f00a,transparent 80%); }
+    .lane:active:not(:disabled) .formula { transform:scale(.985); }
     .formula {
-      z-index: 1;
-      max-width: 100%;
-      font-family: "Arial Rounded MT Bold", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
-      font-size: clamp(24px, 4.8vw, 39px);
-      font-weight: 900;
-      line-height: 1.25;
-      letter-spacing: -.055em;
-      text-align: center;
-      overflow-wrap: anywhere;
-      font-variant-numeric: lining-nums tabular-nums;
+      position:relative; z-index:3; min-height:76px; width:min(100%,275px); display:grid; place-items:center; text-align:center;
+      padding:11px 10px; border:1px solid #537083; border-radius:15px;
+      color:#f5fcff; background:linear-gradient(145deg,#2b4457f5,#1b3045f5);
+      box-shadow:inset 0 1px #ffffff20,0 10px 22px #0002;
+      font-size:clamp(22px,3.9vw,33px); font-weight:950; line-height:1.25; letter-spacing:-.05em; overflow-wrap:anywhere;
+      font-variant-numeric:tabular-nums; transition:transform .14s,border-color .18s,box-shadow .18s;
     }
-    .formula.long { font-size: clamp(19px, 3.7vw, 30px); }
-    .formula.very-long { font-size: clamp(16px, 3.15vw, 24px); }
-    .card-bottom { z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; color: var(--mint); font-size: 12px; font-weight: 900; }
-    .math-card.right .card-bottom { color: var(--orange); }
-    .math-card.correct { border-color: var(--mint); background: linear-gradient(145deg,#23695b,#153c41); box-shadow: 0 0 36px #5bf6ba38; }
-    .math-card.wrong { border-color: var(--red); background: linear-gradient(145deg,#713549,#3c243a); }
-    .math-card.reveal { border-color: var(--orange); }
-    .versus { position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 43px; height: 43px; display: grid; place-items: center; border: 4px solid var(--bg); background: #2b3851; border-radius: 50%; font-size: 12px; font-weight: 900; letter-spacing: -.04em; color: #d9e2f0; pointer-events: none; }
-    .result { min-height: 29px; margin: 14px auto 0; text-align: center; color: #9eb2ca; font-size: 13px; font-weight: 700; }
-    .result.good { color: var(--mint); }
-    .result.bad { color: var(--red); }
-    .instruction { display: flex; justify-content: center; flex-wrap: wrap; align-items: center; gap: 10px; margin: 11px auto 0; color: #8fa4bf; font-size: 12px; font-weight: 650; }
-    .instruction b { color: #d7e8f7; font-weight: 900; }
-    .key { border: 1px solid #40536b; border-bottom-width: 3px; background: #1c2c42; color: #d9e5f4; border-radius: 7px; padding: 2px 7px; font-size: 13px; }
-    .instructions-divider { width: 1px; height: 17px; background: #4d5870; }
-    .footer { margin-top: auto; padding-top: 22px; display: flex; justify-content: center; gap: 8px; color: #6e859e; font-size: 10px; letter-spacing: .08em; }
-    .overlay {
-      position: fixed;
-      z-index: 10;
-      inset: 0;
-      padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: #07101dc4;
-      backdrop-filter: blur(12px);
-      overflow-y: auto;
+    .formula.long { font-size:clamp(18px,3.15vw,26px); }
+    .formula.very-long { font-size:clamp(15px,2.7vw,22px); }
+    .formula.appear { animation:formula-pop .24s cubic-bezier(.12,.85,.25,1.1) both; }
+    .lane:nth-child(2) .formula.appear { animation-delay:.045s; }
+    .hud-value.bump { animation:hud-bump .29s ease-out; }
+    .lane.correct .formula { border-color:#7cfdce; box-shadow:0 0 23px #48eab54a; }
+    .lane.wrong .formula { border-color:#f48199; box-shadow:0 0 23px #ff729333; }
+    .bin-shell { position:relative; width:clamp(130px,21vw,182px); height:204px; margin-top:auto; margin-bottom:35px; flex-shrink:0; display:grid; place-items:end center; }
+    .bin-art { position:relative; z-index:2; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 8px 13px #0009); transition:filter .35s; }
+    .bin-shadow { fill:#020b1480; }
+    .bin-body { fill:var(--bin-main); stroke:var(--bin-edge); stroke-width:3; transition:fill .5s,stroke .5s; }
+    .bin-side { fill:var(--bin-dark); opacity:.7; transition:fill .5s; }
+    .bin-shine { fill:var(--bin-hi); opacity:.68; transition:fill .5s; }
+    .bin-stripe { fill:none; stroke:var(--bin-dark); stroke-width:6; stroke-linecap:round; opacity:.72; transition:stroke .5s; }
+    .bin-rim { fill:var(--bin-hi); stroke:var(--bin-edge); stroke-width:3; transition:fill .5s,stroke .5s; }
+    .bin-hole { fill:#122231; stroke:#314452; stroke-width:2; }
+    .bin-handle { fill:var(--bin-dark); stroke:var(--bin-edge); stroke-width:3; transition:fill .5s,stroke .5s; }
+    .bin-plate { fill:#132b3b; stroke:var(--bin-edge); stroke-width:1.5; }
+    .tier-mark { fill:var(--bin-edge); font-family:system-ui,sans-serif; font-size:18px; font-weight:950; text-anchor:middle; }
+    .bin-gem, .bin-crown, .bin-halo { opacity:0; transition:opacity .4s; }
+    .arena[data-tier="3"] .bin-gem, .arena[data-tier="4"] .bin-gem { opacity:1; }
+    .arena[data-tier="4"] .bin-crown, .arena[data-tier="4"] .bin-halo { opacity:1; }
+    .bin-halo { fill:none; stroke:#ffedaa; stroke-width:3; filter:drop-shadow(0 0 9px #fff9b5); }
+    .bin-gem { fill:#6df7f5; stroke:#ecffff; stroke-width:2; }
+    .bin-crown { fill:#ffe7a0; stroke:#fff9df; stroke-width:2; }
+    .bin-light { position:absolute; z-index:0; bottom:15px; left:50%; width:140%; height:130px; transform:translateX(-50%); background:radial-gradient(ellipse,var(--bin-glow),transparent 68%); filter:blur(8px); transition:background .4s; pointer-events:none; }
+    .hit-anchor { position:absolute; left:50%; bottom:135px; width:4px; height:4px; transform:translate(-50%,-50%); pointer-events:none; }
+    .flame-art { position:absolute; z-index:1; left:50%; bottom:123px; width:78%; height:155px; transform:translateX(-50%) scale(.25,0); opacity:0; transform-origin:50% 100%; pointer-events:none; filter:drop-shadow(0 0 15px #ffae4c90); }
+    .bin-shell.ignite .flame-art { animation:flare .52s ease-out both; }
+    .bin-shell.evolve .bin-art { animation:bin-evolve .65s cubic-bezier(.15,.8,.25,1) both; }
+    .bin-shell.evolve .bin-light { animation:light-burst .7s ease-out both; }
+    .lane-tag { position:absolute; z-index:3; bottom:18px; color:#9fc2ca; font-size:10px; font-weight:950; letter-spacing:.21em; }
+    .paper { position:absolute; z-index:6; left:50%; bottom:12px; transform:translateX(-50%); width:60px; height:60px; filter:drop-shadow(0 9px 9px #000a); pointer-events:none; }
+    .paper-inner { width:100%; height:100%; animation:paper-bob 1.7s ease-in-out infinite; }
+    .paper.flying .paper-inner { animation:none; }
+    .paper svg { width:100%; height:100%; overflow:visible; }
+    .paper-hint { position:absolute; bottom:12px; left:calc(50% + 42px); z-index:5; font-size:10px; font-weight:900; color:#93b5c2; white-space:nowrap; pointer-events:none; }
+    .evo-meter { display:flex; align-items:center; gap:9px; margin:10px 4px 0; }
+    .evo-name { color:#b8d5dd; font-size:11px; font-weight:850; min-width:93px; }
+    .evo-track { background:#243f4c; height:4px; border-radius:50px; overflow:hidden; flex:1; }
+    .evo-fill { height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,#60dbb7,#f4d27f); transition:width .28s ease-out; }
+    .evo-next { color:#83a5b3; font-size:10px; white-space:nowrap; }
+    .message { min-height:28px; text-align:center; padding-top:12px; color:#9fb7c6; font-size:13px; font-weight:800; }
+    .message.good { color:#7af1c8; }
+    .message.bad { color:#ff94a6; }
+    .controls { display:flex; justify-content:center; align-items:center; gap:11px; margin:8px auto 0; color:#8ba7b9; font-size:11px; }
+    .controls strong { color:#d7eaf3; }
+    .control-separator { height:14px; width:1px; background:#385269; }
+    .keyboard { border:1px solid #456377; border-bottom-width:3px; border-radius:6px; padding:1px 6px; background:#213548; font-size:12px; color:#cde6ec; }
+    .footer { margin-top:auto; padding-top:17px; text-align:center; font-size:9px; font-weight:800; letter-spacing:.19em; color:#638493; }
+    .popup { position:absolute; z-index:9; pointer-events:none; left:50%; top:48%; transform:translate(-50%,-50%) scale(.5); opacity:0; font-size:28px; font-weight:1000; letter-spacing:-.05em; text-shadow:0 4px 14px #000b; white-space:nowrap; }
+    .popup.good { color:#83ffd0; }
+    .popup.bad { color:#ff9eb1; }
+    .popup.show { animation:pop-up .56s ease-out both; }
+    .spark { position:absolute; z-index:8; width:5px; height:8px; border-radius:5px; background:var(--spark-color,#ffd478); pointer-events:none; box-shadow:0 0 9px currentColor; animation:spark .6s cubic-bezier(.15,.55,.35,1) forwards; }
+    .arena.evolution-flash { animation:arena-flash .55s ease-out; }
+    .overlay { position:fixed; z-index:20; inset:0; display:none; justify-content:center; align-items:center; overflow-y:auto; padding:max(20px,env(safe-area-inset-top)) 20px max(20px,env(safe-area-inset-bottom)); background:#06111dcb; backdrop-filter:blur(12px); }
+    .overlay.show { display:flex; }
+    .modal { width:min(100%,410px); position:relative; overflow:hidden; border:1px solid #3c6976; border-radius:25px; padding:30px 29px; text-align:center; background:linear-gradient(150deg,#1e3b4a,#112638 70%,#102235); box-shadow:0 30px 80px #0008,inset 0 1px #ffffff1c; }
+    .modal::before { content:""; position:absolute; top:-130px; left:50%; width:280px; height:230px; transform:translateX(-50%); background:#4deec44d; filter:blur(85px); pointer-events:none; }
+    .modal-icon { display:grid; place-items:center; width:64px; height:64px; margin:0 auto 17px; border-radius:17px; border:1px solid #69d5b3; background:#23594f; box-shadow:0 0 36px #5beaaf22; color:#9effd4; }
+    .modal-icon svg { height:33px; width:33px; }
+    .modal-kicker { position:relative; color:var(--mint); font-size:10px; font-weight:950; letter-spacing:.2em; }
+    .modal h2 { position:relative; font-size:clamp(26px,6.5vw,32px); letter-spacing:-.06em; margin:10px 0 13px; line-height:1.4; }
+    .modal p { color:#b5c8d6; font-size:13px; line-height:1.85; margin:0; }
+    .demo-throw { display:flex; justify-content:center; align-items:center; gap:16px; margin:25px 0 18px; }
+    .demo-math { width:105px; border:1px solid #597989; border-radius:13px; background:#263e51; padding:12px 7px; font-weight:950; font-size:21px; }
+    .demo-math.right { border-color:#6ce6bb; color:#81f7c7; background:#215345; }
+    .demo-math small { display:block; color:#a8c3cf; font-size:10px; letter-spacing:.12em; margin-top:6px; }
+    .modal-note { color:#8faebd!important; font-size:11px!important; margin-bottom:22px!important; }
+    .primary { display:block; width:100%; border:0; border-radius:14px; padding:17px; background:linear-gradient(95deg,#5ae9bc,#b2ffd1); box-shadow:0 12px 28px #54e7b42e; color:#0a3c34; font-size:16px; font-weight:950; transition:filter .16s,transform .16s; }
+    .primary:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .primary:active { transform:scale(.985); }
+    .modal-best { color:#94aebd; font-size:12px; margin-top:18px; }
+    .modal-best b { color:var(--gold); font-size:16px; }
+    .final-score { font-size:65px; font-weight:1000; font-variant-numeric:tabular-nums; line-height:1.1; letter-spacing:-.065em; color:var(--mint); margin:10px 0 2px; }
+    .end-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:22px 0 25px; }
+    .end-stat { border:1px solid #365367; border-radius:11px; padding:10px 2px; color:#91adbd; font-size:10px; }
+    .end-stat b { display:block; color:#f5fbff; font-size:23px; margin-top:3px; }
+    @keyframes paper-bob { 0%,100%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-5px) rotate(5deg)} }
+    @keyframes formula-pop { 0%{opacity:.25;transform:translateY(-9px) scale(.94)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+    @keyframes hud-bump { 0%,100%{transform:scale(1)} 45%{transform:scale(1.18)} }
+    @keyframes flare { 0%{opacity:0;transform:translateX(-50%) scale(.25,0)} 30%{opacity:1;transform:translateX(-50%) scale(1,1.15)} 65%{opacity:1;transform:translateX(-50%) scale(.9,1)} 100%{opacity:0;transform:translateX(-50%) scale(.6,.28)} }
+    @keyframes bin-evolve { 0%{transform:scale(1);filter:brightness(1)} 30%{transform:scale(1.15);filter:brightness(2)} 60%{transform:scale(.95);filter:brightness(1.5)} 100%{transform:scale(1);filter:brightness(1)} }
+    @keyframes light-burst { 0%{opacity:.5;transform:translateX(-50%) scale(.7)} 35%{opacity:1;transform:translateX(-50%) scale(1.65)} 100%{opacity:1;transform:translateX(-50%) scale(1)} }
+    @keyframes spark { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)} }
+    @keyframes pop-up { 0%{opacity:0;transform:translate(-50%,-45%) scale(.5)} 30%{opacity:1;transform:translate(-50%,-60%) scale(1.16)} 60%{opacity:1;transform:translate(-50%,-67%) scale(1)} 100%{opacity:0;transform:translate(-50%,-95%) scale(.9)} }
+    @keyframes arena-flash { 0%,100%{box-shadow:inset 0 1px #ffffff1c,0 18px 45px #0004} 30%{box-shadow:inset 0 0 120px #fff0ac66,0 0 35px #fcd56b70} }
+    @media(max-width:550px) {
+      .app { padding:15px 14px 17px; }
+      .edition { display:none; }
+      .title-area { margin:16px auto 17px; }
+      .hud { gap:7px; }
+      .hud-cell { padding:10px 11px; min-height:65px; }
+      .timer-area { margin:11px 2px; gap:9px; }
+      .arena { height:clamp(388px,48svh,450px); border-radius:21px; }
+      .arena-hood { top:12px; left:12px; right:12px; }
+      .lanes { padding:43px 7px 0; gap:8px; }
+      .lane { padding:2px 2px 0; }
+      .formula { min-height:68px; padding:10px 5px; border-radius:12px; font-size:clamp(19px,5.3vw,26px); }
+      .formula.long { font-size:clamp(16px,4.5vw,21px); }
+      .formula.very-long { font-size:clamp(13px,3.7vw,18px); }
+      .bin-shell { width:clamp(125px,39vw,165px); height:195px; margin-bottom:38px; }
+      .paper { width:57px; height:57px; bottom:8px; }
+      .paper-hint { left:calc(50% + 34px); bottom:14px; font-size:9px; }
+      .hit-anchor { bottom:131px; }
+      .flame-art { bottom:121px; }
+      .controls { gap:7px; font-size:10px; }
+      .evo-name { min-width:80px; font-size:10px; }
     }
-    .overlay.show { display: flex; }
-    .modal { position: relative; width: min(100%, 420px); border: 1px solid #416578; border-radius: 27px; padding: clamp(25px, 6vw, 38px); text-align: center; background: linear-gradient(145deg, #1c3349, #102138 78%); box-shadow: 0 30px 90px #0009, inset 0 1px #ffffff1a; overflow: hidden; }
-    .modal::before { content: ""; position: absolute; width: 230px; height: 230px; border-radius: 50%; top: -145px; left: calc(50% - 115px); background: #58eab93b; filter: blur(70px); pointer-events: none; }
-    .modal-mark { width: 64px; height: 64px; display: grid; place-items: center; margin: 0 auto 18px; border: 1px solid #65d6b3; border-radius: 18px; background: #1c584f; color: var(--mint); font-size: 32px; font-weight: 900; box-shadow: 0 8px 30px #42f3b31f; }
-    .modal-kicker { color: var(--mint); font-size: 11px; font-weight: 900; letter-spacing: .2em; }
-    .modal h2 { margin: 10px 0 12px; font-size: clamp(25px, 6vw, 33px); letter-spacing: -.06em; line-height: 1.4; }
-    .modal p { margin: 0; color: #b5c6d8; font-size: 13px; line-height: 1.9; }
-    .demo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 25px 0 18px; }
-    .demo-card { border-radius: 13px; border: 1px solid #496279; background: #22394f; padding: 13px 4px; font-size: 22px; font-weight: 900; }
-    .demo-card.win { border-color: var(--mint); background: #24584e; color: var(--mint); }
-    .demo-card small { display: block; margin-top: 5px; color: #aabbd1; font-size: 9px; letter-spacing: .1em; }
-    .tips { font-size: 11px !important; color: #8fa5bf !important; margin-bottom: 23px !important; }
-    .primary { display: block; width: 100%; border: 0; border-radius: 15px; padding: 17px; color: #07352e; background: linear-gradient(90deg, #61f0bf, #aeffd1); font-size: 16px; font-weight: 900; box-shadow: 0 12px 30px #45eab32f; transition: transform .15s, filter .15s; }
-    .primary:hover { filter: brightness(1.06); transform: translateY(-1px); }
-    .primary:active { transform: scale(.985); }
-    .best-label { margin-top: 17px; color: #92a9c2; font-size: 12px; }
-    .best-label b { color: var(--orange); font-size: 16px; }
-    .final-score { font-size: 64px; font-weight: 950; line-height: 1.1; color: var(--mint); letter-spacing: -.055em; margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
-    .end-stats { display: flex; justify-content: center; gap: 25px; margin: 22px 0 26px; }
-    .end-stat { color: var(--muted); font-size: 11px; }
-    .end-stat strong { display: block; margin-top: 5px; color: var(--white); font-size: 22px; }
-    @media (max-width: 520px) {
-      .shell { padding: 16px 16px 18px; }
-      .hero { margin-top: 21px; }
-      .game { margin-top: 22px; }
-      .top-tag { display: none; }
-      .stat { padding: 11px 12px; min-height: 65px; }
-      .scorebar { gap: 8px; }
-      .timebar { margin-top: 18px; }
-      .roundline { margin-top: 19px; }
-      .arena { gap: 10px; }
-      .math-card { height: clamp(190px, 29vh, 235px); border-radius: 19px; }
-      .instruction { font-size: 11px; gap: 7px; }
-      .footer { padding-top: 14px; }
+    @media(max-width:365px) {
+      .brand { letter-spacing:.08em; }
+      .arena { height:392px; }
+      .bin-shell { width:124px; }
+      .paper-hint { display:none; }
     }
-    @media (max-width: 375px) {
-      .formula { font-size: 23px; }
-      .formula.long { font-size: 18px; }
-      .formula.very-long { font-size: 15px; }
-      .stat-label { font-size: 9px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
-    }
+    @media(max-height:730px) and (min-width:550px) { .arena { height:390px; } .title-area { margin:10px auto 12px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand"><div class="logo" aria-hidden="true">≷</div><span>MATH / FLICK</span></div>
-      <div class="top-right"><span class="top-tag">BIGGER IS BETTER.</span><button id="soundBtn" class="icon-btn" type="button" aria-label="効果音をオンにする" title="効果音">♪̸</button></div>
+  <div class="app">
+    <header class="masthead">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 26"><path d="M14 2C19 8 10 11 17 16C20 14 21 11 21 11C25 20 20 25 12 25C5 25 1 21 3 14C4 11 7 8 8 6C9 11 11 12 12 13C13 10 13 6 14 2Z" fill="currentColor"/></svg></div>
+        <span>FIRE BIN <span style="color:#709b9f">/</span> MATH FLICK</span>
+      </div>
+      <div class="mast-actions"><span class="edition">45-SECOND ARCADE</span><button class="sound" id="soundButton" aria-label="効果音をオンにする" type="button">♪̸</button></div>
     </header>
-    <section class="hero" aria-label="ゲームタイトル">
-      <div class="eyebrow"><span class="pulse-dot"></span> QUICK MATH CHALLENGE</div>
-      <h1>大きいのは、<span class="accent">どっち？</span></h1>
-      <p class="subtitle">計算して、大きい方にフリック。</p>
-    </section>
-    <main class="game">
-      <div class="scorebar" aria-label="ゲームの記録">
-        <div class="stat"><div class="stat-label">SCORE</div><div class="stat-number" id="score">0</div></div>
-        <div class="stat"><div class="stat-label">COMBO</div><div class="stat-number" id="combo">0<span style="font-size:13px">連続</span></div></div>
-        <div class="stat"><div class="stat-label">BEST</div><div class="stat-number" id="best">0</div></div>
-      </div>
-      <div class="timebar">
-        <div class="timehead"><span>TIME LEFT</span><div id="clock" class="clock" aria-label="残り時間">0:45</div></div>
-        <div class="track" role="progressbar" aria-label="残り時間" aria-valuemin="0" aria-valuemax="45" aria-valuenow="45" id="timeTrack"><div class="fill" id="timeFill"></div></div>
-      </div>
-      <div class="roundline">
-        <span id="round">ROUND 01</span>
-        <span id="level" class="level">LEVEL 1 · ウォームアップ</span>
-      </div>
-      <section class="arena" id="arena" aria-label="大きい答えの数式を選ぶ">
-        <button class="math-card left" id="leftCard" type="button" aria-label="左の数式を選ぶ">
-          <span class="card-top">OPTION 01</span>
-          <span class="formula" id="leftFormula">8 ＋ 7</span>
-          <span class="card-bottom">← LEFT</span>
-        </button>
-        <div class="versus" aria-hidden="true">VS</div>
-        <button class="math-card right" id="rightCard" type="button" aria-label="右の数式を選ぶ">
-          <span class="card-top">OPTION 02</span>
-          <span class="formula" id="rightFormula">6 × 3</span>
-          <span class="card-bottom">RIGHT →</span>
-        </button>
+    <div class="title-area">
+      <div class="kicker">THINK FAST. THROW RIGHT.</div>
+      <h1>大きい式へ、<em>投げ込め。</em></h1>
+      <p class="subhead">計算してフリック。正解で炎が上がり、ゴミ箱が進化する。</p>
+    </div>
+    <main>
+      <section class="hud" aria-label="ゲームの記録">
+        <div class="hud-cell"><div class="hud-label">SCORE</div><div class="hud-value" id="score">0</div></div>
+        <div class="hud-cell"><div class="hud-label">COMBO</div><div class="hud-value" id="combo">0<span class="hud-unit">連続</span></div></div>
+        <div class="hud-cell"><div class="hud-label">BEST</div><div class="hud-value" id="best">0</div></div>
       </section>
-      <div id="result" class="result" role="status" aria-live="polite">どちらが大きい？</div>
-      <div class="instruction"><span>指で <b>← フリック →</b></span><span class="instructions-divider"></span><span>タップでもOK</span><span class="instructions-divider"></span><span class="key">←</span><span class="key">→</span></div>
+      <div class="timer-area">
+        <span class="timer-label">TIME LEFT</span>
+        <div class="timer-track" id="timerTrack" role="progressbar" aria-label="残り時間" aria-valuemin="0" aria-valuemax="45" aria-valuenow="45"><div class="timer-fill" id="timerFill"></div></div>
+        <span class="timer-value" id="timer">0:45</span>
+      </div>
+      <section class="arena" id="arena" data-tier="0" aria-label="大きい数式のゴミ箱へ紙くずを投げる">
+        <div class="arena-hood"><div class="signal"><span class="signal-dot"></span><span id="roundLabel">ROUND 01</span></div><span class="level-pill" id="levelLabel">LEVEL 1 · ウォームアップ</span></div>
+        <div class="lane-split"></div>
+        <div class="lanes">
+          <button class="lane" id="leftLane" type="button" aria-label="左の数式に投げる">
+            <span class="formula" id="leftFormula">8 ＋ 7</span>
+            <div class="bin-shell" id="leftBin">
+              <span class="bin-light"></span>
+              <svg class="flame-art" viewBox="0 0 130 175" aria-hidden="true">
+                <path d="M65 170 C22 155 11 125 30 84 C37 70 42 56 38 36 C62 53 61 63 65 69 C73 40 91 29 89 5 C120 42 113 66 112 82 C129 119 111 160 65 170Z" fill="#ff8a34"/>
+                <path d="M65 170 C36 153 39 122 48 100 C56 85 59 72 58 58 C81 79 75 91 79 95 C89 79 94 72 94 65 C111 107 99 146 65 170Z" fill="#ffe17b"/>
+                <path d="M65 170 C52 153 54 134 66 112 C73 129 81 137 80 148 C77 160 71 167 65 170Z" fill="#fff8d1"/>
+              </svg>
+              <span class="hit-anchor"></span>
+              <svg class="bin-art" viewBox="0 0 180 200" aria-hidden="true">
+                <ellipse class="bin-shadow" cx="90" cy="187" rx="69" ry="10"/>
+                <ellipse class="bin-halo" cx="90" cy="94" rx="78" ry="78"/>
+                <path class="bin-handle" d="M24 65 Q5 66 11 97 L28 96 L34 82Z M156 65 Q175 66 169 97 L152 96 L146 82Z"/>
+                <path class="bin-body" d="M31 57 L149 57 L137 174 Q90 192 43 174 Z"/>
+                <path class="bin-side" d="M31 57 L53 63 L60 179 Q49 178 43 174Z M149 57 L128 63 L120 179 Q132 177 137 174Z"/>
+                <path class="bin-shine" d="M58 72 L70 74 L72 169 L63 168 Z"/>
+                <path class="bin-stripe" d="M80 81 L81 161 M102 81 L100 161 M120 82 L114 162"/>
+                <ellipse class="bin-rim" cx="90" cy="56" rx="62" ry="17"/>
+                <ellipse class="bin-hole" cx="90" cy="54" rx="49" ry="9"/>
+                <path class="bin-crown" d="M45 35 L43 10 L64 22 L90 2 L116 22 L137 10 L135 35 Z"/>
+                <path class="bin-gem" d="M90 30 L99 38 L90 48 L81 38Z"/>
+                <rect class="bin-plate" x="71" y="107" width="38" height="33" rx="7"/>
+                <text class="tier-mark" x="90" y="129">I</text>
+              </svg>
+            </div>
+            <span class="lane-tag">← LEFT</span>
+          </button>
+          <button class="lane" id="rightLane" type="button" aria-label="右の数式に投げる">
+            <span class="formula" id="rightFormula">6 × 3</span>
+            <div class="bin-shell" id="rightBin">
+              <span class="bin-light"></span>
+              <svg class="flame-art" viewBox="0 0 130 175" aria-hidden="true">
+                <path d="M65 170 C22 155 11 125 30 84 C37 70 42 56 38 36 C62 53 61 63 65 69 C73 40 91 29 89 5 C120 42 113 66 112 82 C129 119 111 160 65 170Z" fill="#ff8a34"/>
+                <path d="M65 170 C36 153 39 122 48 100 C56 85 59 72 58 58 C81 79 75 91 79 95 C89 79 94 72 94 65 C111 107 99 146 65 170Z" fill="#ffe17b"/>
+                <path d="M65 170 C52 153 54 134 66 112 C73 129 81 137 80 148 C77 160 71 167 65 170Z" fill="#fff8d1"/>
+              </svg>
+              <span class="hit-anchor"></span>
+              <svg class="bin-art" viewBox="0 0 180 200" aria-hidden="true">
+                <ellipse class="bin-shadow" cx="90" cy="187" rx="69" ry="10"/>
+                <ellipse class="bin-halo" cx="90" cy="94" rx="78" ry="78"/>
+                <path class="bin-handle" d="M24 65 Q5 66 11 97 L28 96 L34 82Z M156 65 Q175 66 169 97 L152 96 L146 82Z"/>
+                <path class="bin-body" d="M31 57 L149 57 L137 174 Q90 192 43 174 Z"/>
+                <path class="bin-side" d="M31 57 L53 63 L60 179 Q49 178 43 174Z M149 57 L128 63 L120 179 Q132 177 137 174Z"/>
+                <path class="bin-shine" d="M58 72 L70 74 L72 169 L63 168 Z"/>
+                <path class="bin-stripe" d="M80 81 L81 161 M102 81 L100 161 M120 82 L114 162"/>
+                <ellipse class="bin-rim" cx="90" cy="56" rx="62" ry="17"/>
+                <ellipse class="bin-hole" cx="90" cy="54" rx="49" ry="9"/>
+                <path class="bin-crown" d="M45 35 L43 10 L64 22 L90 2 L116 22 L137 10 L135 35 Z"/>
+                <path class="bin-gem" d="M90 30 L99 38 L90 48 L81 38Z"/>
+                <rect class="bin-plate" x="71" y="107" width="38" height="33" rx="7"/>
+                <text class="tier-mark" x="90" y="129">I</text>
+              </svg>
+            </div>
+            <span class="lane-tag">RIGHT →</span>
+          </button>
+        </div>
+        <div class="paper" id="paper" aria-hidden="true">
+          <div class="paper-inner">
+            <svg viewBox="0 0 64 64">
+              <path d="M11 24 L19 12 L34 14 L48 9 L56 25 L47 41 L52 52 L34 58 L14 48 L7 34Z" fill="#e9eef0" stroke="#8198a4" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M19 12 L29 29 L11 24 L7 34 L26 42 L14 48 M34 14 L38 31 L48 9 M56 25 L38 31 L47 41 L34 58 M29 29 L38 31 L26 42 L34 58 M47 41 L26 42" fill="none" stroke="#94a8b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 12 L22 23 L29 29 M48 9 L43 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <span class="paper-hint">← FLICK →</span>
+        <div class="popup" id="popup" aria-hidden="true">IN!</div>
+        <div id="sparks" aria-hidden="true"></div>
+      </section>
+      <div class="evo-meter" aria-label="ゴミ箱の進化">
+        <span class="evo-name" id="evoName">普通のゴミ箱</span>
+        <div class="evo-track"><div class="evo-fill" id="evoFill"></div></div>
+        <span class="evo-next" id="evoNext">進化まで 5問</span>
+      </div>
+      <div class="message" id="message" role="status" aria-live="polite">大きい数式のゴミ箱へ投げよう</div>
+      <div class="controls"><span><strong>← フリック →</strong></span><span class="control-separator"></span><span>タップでもOK</span><span class="control-separator"></span><span class="keyboard">←</span><span class="keyboard">→</span></div>
     </main>
-    <div class="footer"><span>45 SECOND MATH SPRINT</span><span>•</span><span>TRAIN YOUR INSTINCT</span></div>
+    <footer class="footer">FIRE BIN · THE GREAT MATH THROW</footer>
   </div>
-
   <div class="overlay show" id="startOverlay">
     <div class="modal">
-      <div class="modal-mark" aria-hidden="true">≷</div>
-      <div class="modal-kicker">READY, THINK, FLICK!</div>
-      <h2>大きい数式を<br>選び続けろ。</h2>
-      <p>左右の式を計算して、<br>答えが大きい方向へフリック！</p>
-      <div class="demo" aria-hidden="true"><div class="demo-card">8 ＋ 7<small>15</small></div><div class="demo-card win">6 × 3<small>18 ✓</small></div></div>
-      <p class="tips">45秒勝負 / 連続正解で高得点 / ミスは−3秒</p>
-      <button id="startBtn" class="primary" type="button">ゲームスタート　→</button>
-      <div class="best-label">自己ベスト <b id="startBest">0</b> pt</div>
+      <div class="modal-icon"><svg viewBox="0 0 24 26" aria-hidden="true"><path d="M14 2C19 8 10 11 17 16C20 14 21 11 21 11C25 20 20 25 12 25C5 25 1 21 3 14C4 11 7 8 8 6C9 11 11 12 12 13C13 10 13 6 14 2Z" fill="currentColor"/></svg></div>
+      <div class="modal-kicker">THINK. FLICK. IGNITE.</div>
+      <h2>大きい方へ、<br>紙くずを投げ込め。</h2>
+      <p>左右の数式を比べてフリック。<br>正解で炎が上がり、ゴミ箱が進化する！</p>
+      <div class="demo-throw" aria-hidden="true"><div class="demo-math">8 ＋ 7<small>15</small></div><span style="font-size:24px;color:#9bcccf">→</span><div class="demo-math right">6 × 3<small>18 ✓</small></div></div>
+      <p class="modal-note">45秒勝負 / 連続正解でボーナス / ミスは−3秒</p>
+      <button class="primary" id="startButton" type="button">ゲームスタート　→</button>
+      <div class="modal-best">自己ベスト <b id="startBest">0</b> pt</div>
     </div>
   </div>
   <div class="overlay" id="endOverlay" aria-hidden="true">
     <div class="modal">
-      <div class="modal-mark" aria-hidden="true">★</div>
+      <div class="modal-icon"><svg viewBox="0 0 24 26" aria-hidden="true"><path d="M14 2C19 8 10 11 17 16C20 14 21 11 21 11C25 20 20 25 12 25C5 25 1 21 3 14C4 11 7 8 8 6C9 11 11 12 12 13C13 10 13 6 14 2Z" fill="currentColor"/></svg></div>
       <div class="modal-kicker" id="endKicker">TIME UP!</div>
-      <h2 id="endTitle">おつかれさま！</h2>
-      <div class="final-score" id="finalScore">0</div>
+      <h2 id="endHeading">おつかれさま！</h2>
+      <div class="final-score" id="endScore">0</div>
       <p>POINTS</p>
       <div class="end-stats">
-        <div class="end-stat">正解数<strong id="correctCount">0</strong></div>
-        <div class="end-stat">最高連続<strong id="maxCombo">0</strong></div>
-        <div class="end-stat">BEST<strong id="endBest">0</strong></div>
+        <div class="end-stat">正解数<b id="endCorrect">0</b></div>
+        <div class="end-stat">最高コンボ<b id="endCombo">0</b></div>
+        <div class="end-stat">最高記録<b id="endBest">0</b></div>
       </div>
-      <button id="retryBtn" class="primary" type="button">もう一度挑戦　↻</button>
+      <button class="primary" id="retryButton" type="button">もう一度投げる　↻</button>
     </div>
   </div>
   <script>
-    (() => {
-      'use strict';
-      const $ = (id) => document.getElementById(id);
-      const DURATION = 45000;
-      const labels = ['ウォームアップ', 'スピード勝負', '応用計算', '難問ゾーン', 'エキスパート'];
-      const els = {
-        score: $('score'), combo: $('combo'), best: $('best'), clock: $('clock'),
-        timeFill: $('timeFill'), timeTrack: $('timeTrack'), round: $('round'), level: $('level'),
-        leftCard: $('leftCard'), rightCard: $('rightCard'), leftFormula: $('leftFormula'),
-        rightFormula: $('rightFormula'), result: $('result'), arena: $('arena'),
-        startOverlay: $('startOverlay'), endOverlay: $('endOverlay'), startBest: $('startBest')
-      };
-      const random = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-      const pick = (array) => array[random(0, array.length - 1)];
-      const safeBest = () => { try { return Number(localStorage.getItem('math-flick-best')) || 0; } catch { return 0; } };
-      const saveBest = (value) => { try { localStorage.setItem('math-flick-best', String(value)); } catch {} };
-      let state = { playing: false, busy: false, score: 0, streak: 0, maxStreak: 0, correct: 0, round: 1, pair: null, deadline: 0, timeLeft: DURATION, best: safeBest(), session: 0 };
-      let frame = 0;
-      let soundOn = false;
-      let audioContext = null;
-      let pointerStart = null;
-
-      function sound(good) {
-        if (!soundOn) return;
-        try {
-          const Context = window.AudioContext || window.webkitAudioContext;
-          if (!Context) return;
-          if (!audioContext) audioContext = new Context();
-          if (audioContext.state === 'suspended') audioContext.resume();
-          const oscillator = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          const now = audioContext.currentTime;
-          oscillator.type = good ? 'sine' : 'triangle';
-          oscillator.frequency.setValueAtTime(good ? 620 : 260, now);
-          oscillator.frequency.exponentialRampToValueAtTime(good ? 910 : 130, now + .11);
-          gain.gain.setValueAtTime(.10, now);
-          gain.gain.exponentialRampToValueAtTime(.001, now + .14);
-          oscillator.connect(gain).connect(audioContext.destination);
-          oscillator.start(now);
-          oscillator.stop(now + .15);
-        } catch {}
+  (() => {
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const DURATION = 45000;
+    const THRESHOLDS = [0, 5, 12, 20, 30];
+    const TIER_NAMES = ['普通のゴミ箱','銀のゴミ箱','黄金のゴミ箱','宝石のゴミ箱','伝説のゴミ箱'];
+    const MARKS = ['I','II','III','IV','V'];
+    const LEVEL_NAMES = ['ウォームアップ','スピード勝負','応用計算','難問ゾーン','エキスパート'];
+    const el = {
+      arena:$('arena'), paper:$('paper'), left:$('leftLane'), right:$('rightLane'),
+      leftFormula:$('leftFormula'), rightFormula:$('rightFormula'),
+      leftBin:$('leftBin'), rightBin:$('rightBin'), score:$('score'), combo:$('combo'),
+      best:$('best'), timer:$('timer'), timerFill:$('timerFill'), timerTrack:$('timerTrack'),
+      round:$('roundLabel'), level:$('levelLabel'), popup:$('popup'), sparks:$('sparks'),
+      message:$('message'), evoName:$('evoName'), evoNext:$('evoNext'), evoFill:$('evoFill'),
+      start:$('startOverlay'), end:$('endOverlay')
+    };
+    const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+    const pick=a=>a[rand(0,a.length-1)];
+    const readBest=()=>{try{return Math.max(Number(localStorage.getItem('fire-bin-best'))||0,Number(localStorage.getItem('math-flick-best'))||0);}catch{return 0;}};
+    const saveBest=n=>{try{localStorage.setItem('fire-bin-best',String(n));}catch{}};
+    const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let game={running:false,busy:false,paused:false,session:0,score:0,streak:0,maxStreak:0,correct:0,round:1,timeLeft:DURATION,deadline:0,pair:null,best:readBest(),tier:0};
+    let frame=0, pointer=null, soundEnabled=false, audioCtx=null;
+    function sound(type) {
+      if(!soundEnabled)return;
+      try{
+        const Context=window.AudioContext||window.webkitAudioContext;
+        if(!Context)return;
+        if(!audioCtx)audioCtx=new Context();
+        if(audioCtx.state==='suspended')audioCtx.resume();
+        const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+        osc.type=type==='miss'?'triangle':'sine';
+        const frequency=type==='throw'?410:type==='miss'?220:type==='evolve'?850:670;
+        osc.frequency.setValueAtTime(frequency,now);
+        osc.frequency.exponentialRampToValueAtTime(type==='miss'?115:frequency*1.42,now+.12);
+        gain.gain.setValueAtTime(.08,now);
+        gain.gain.exponentialRampToValueAtTime(.001,now+.17);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(now);osc.stop(now+.18);
+      }catch{}
+    }
+    function makeExpression(n,level){
+      const options=[];
+      options.push(()=>{const a=rand(1,n-1);return a+' ＋ '+(n-a);});
+      options.push(()=>{const k=rand(2,level?35:15);return(n+k)+' − '+k;});
+      if(level>=1){
+        options.push(()=>{const a=rand(2,9),b=rand(2,Math.max(2,Math.floor((n-1)/a))),c=n-a*b;return c>0?a+' × '+b+' ＋ '+c:null;});
+        options.push(()=>{const a=rand(2,9),b=Math.ceil((n+rand(1,12))/a),c=a*b-n;return c>0?a+' × '+b+' − '+c:null;});
       }
-      function makeExpression(n, level) {
-        const candidates = [];
-        candidates.push(() => {
-          const a = random(1, n - 1);
-          return { text: a + ' ＋ ' + (n - a), value: n };
-        });
-        candidates.push(() => {
-          const extra = random(2, level ? 35 : 15);
-          return { text: (n + extra) + ' − ' + extra, value: n };
-        });
-        if (level >= 1) {
-          candidates.push(() => {
-            const a = random(2, 9);
-            const b = random(2, Math.max(2, Math.floor((n - 1) / a)));
-            const c = n - a * b;
-            return c > 0 ? { text: a + ' × ' + b + ' ＋ ' + c, value: n } : null;
-          });
-          candidates.push(() => {
-            const a = random(2, 9);
-            const b = Math.ceil((n + random(1, 12)) / a);
-            const c = a * b - n;
-            return c > 0 ? { text: a + ' × ' + b + ' − ' + c, value: n } : null;
-          });
-        }
-        if (level >= 2) {
-          candidates.push(() => {
-            const c = random(1, n - 1);
-            const divisor = random(2, 6);
-            return { text: ((n - c) * divisor) + ' ÷ ' + divisor + ' ＋ ' + c, value: n };
-          });
-          candidates.push(() => {
-            const b = random(2, 8);
-            const c = random(2, Math.max(2, Math.floor((n - 1) / b)));
-            const a = n - b * c;
-            return a > 0 ? { text: a + ' ＋ ' + b + ' × ' + c, value: n } : null;
-          });
-        }
-        if (level >= 3) {
-          candidates.push(() => {
-            const divisors = [2,3,4,5,6,7,8].filter(d => n % d === 0 && n / d >= 3);
-            if (!divisors.length) return null;
-            const d = pick(divisors);
-            const a = random(1, n / d - 1);
-            return { text: '(' + a + ' ＋ ' + (n / d - a) + ') × ' + d, value: n };
-          });
-          candidates.push(() => {
-            const divisors = [2,3,4,5,6].filter(d => n % d === 0 && n / d >= 3);
-            if (!divisors.length) return null;
-            const d = pick(divisors);
-            const b = random(2, 12);
-            return { text: '(' + (n / d + b) + ' − ' + b + ') × ' + d, value: n };
-          });
-        }
-        if (level >= 4) {
-          candidates.push(() => {
-            const add = random(1, 8);
-            const divisors = [2,3,4,5,6].filter(d => (n - add) % d === 0 && (n - add) / d >= 3);
-            if (!divisors.length) return null;
-            const d = pick(divisors);
-            const a = random(1, (n - add) / d - 1);
-            const b = (n - add) / d - a;
-            return { text: '(' + a + ' ＋ ' + b + ') × ' + d + ' ＋ ' + add, value: n };
-          });
-        }
-        for (let attempt = 0; attempt < 14; attempt++) {
-          const expression = pick(candidates)();
-          if (expression) return expression;
-        }
-        return candidates[0]();
+      if(level>=2){
+        options.push(()=>{const c=rand(1,n-1),d=rand(2,6);return((n-c)*d)+' ÷ '+d+' ＋ '+c;});
+        options.push(()=>{const b=rand(2,8),c=rand(2,Math.max(2,Math.floor((n-1)/b))),a=n-b*c;return a>0?a+' ＋ '+b+' × '+c:null;});
       }
-      function generatePair() {
-        const level = Math.min(4, Math.floor(state.correct / 6));
-        const ranges = [[12,32],[24,65],[35,95],[45,120],[65,155]];
-        const gaps = [[3,14],[2,10],[2,7],[1,5],[1,4]];
-        const base = random(...ranges[level]);
-        const gap = random(...gaps[level]);
-        const high = base + gap;
-        const low = base;
-        const leftHigh = Math.random() < .5;
-        return {
-          left: makeExpression(leftHigh ? high : low, level),
-          right: makeExpression(leftHigh ? low : high, level),
-          answer: leftHigh ? 'left' : 'right',
-          level
-        };
+      if(level>=3){
+        options.push(()=>{const ds=[2,3,4,5,6,7,8].filter(d=>n%d===0&&n/d>=3);if(!ds.length)return null;const d=pick(ds),a=rand(1,n/d-1);return'('+a+' ＋ '+(n/d-a)+') × '+d;});
+        options.push(()=>{const ds=[2,3,4,5,6].filter(d=>n%d===0&&n/d>=3);if(!ds.length)return null;const d=pick(ds),b=rand(2,12);return'('+(n/d+b)+' − '+b+') × '+d;});
       }
-      function setFormula(element, expression) {
-        element.textContent = expression.text;
-        element.className = 'formula' + (expression.text.length > 17 ? ' very-long' : expression.text.length > 12 ? ' long' : '');
+      if(level>=4){
+        options.push(()=>{const c=rand(1,8),ds=[2,3,4,5,6].filter(d=>(n-c)%d===0&&(n-c)/d>=3);if(!ds.length)return null;const d=pick(ds),a=rand(1,(n-c)/d-1);return'('+a+' ＋ '+((n-c)/d-a)+') × '+d+' ＋ '+c;});
       }
-      function updateHUD() {
-        els.score.textContent = state.score;
-        els.combo.innerHTML = state.streak + '<span style="font-size:13px">連続</span>';
-        els.best.textContent = state.best;
-        els.round.textContent = 'ROUND ' + String(state.round).padStart(2, '0');
-        els.level.textContent = 'LEVEL ' + (state.pair.level + 1) + ' · ' + labels[state.pair.level];
+      for(let i=0;i<14;i++){const result=pick(options)();if(result)return{text:result,value:n};}
+      return{text:options[0](),value:n};
+    }
+    function generatePair(){
+      const level=Math.min(4,Math.floor(game.correct/6));
+      const ranges=[[12,32],[24,65],[35,95],[45,120],[65,155]];
+      const gaps=[[3,14],[2,10],[2,7],[1,5],[1,4]];
+      const low=rand(...ranges[level]),high=low+rand(...gaps[level]);
+      const leftHigh=Math.random()<.5;
+      return{left:makeExpression(leftHigh?high:low,level),right:makeExpression(leftHigh?low:high,level),answer:leftHigh?'left':'right',level};
+    }
+    function getTier(count){for(let i=THRESHOLDS.length-1;i>=0;i--)if(count>=THRESHOLDS[i])return i;return 0;}
+    function updateEvolution(){
+      game.tier=getTier(game.correct);
+      el.arena.dataset.tier=String(game.tier);
+      document.querySelectorAll('.tier-mark').forEach(mark=>{mark.textContent=MARKS[game.tier];});
+      el.evoName.textContent=TIER_NAMES[game.tier];
+      if(game.tier===THRESHOLDS.length-1){
+        el.evoNext.textContent='MAX EVOLUTION';
+        el.evoFill.style.width='100%';
+      }else{
+        const start=THRESHOLDS[game.tier],next=THRESHOLDS[game.tier+1];
+        el.evoNext.textContent='進化まで '+(next-game.correct)+'問';
+        el.evoFill.style.width=((game.correct-start)/(next-start)*100)+'%';
       }
-      function showPair() {
-        state.pair = generatePair();
-        setFormula(els.leftFormula, state.pair.left);
-        setFormula(els.rightFormula, state.pair.right);
-        els.leftCard.className = 'math-card left';
-        els.rightCard.className = 'math-card right';
-        els.result.className = 'result';
-        els.result.textContent = 'どちらが大きい？';
-        state.busy = false;
+    }
+    function updateHUD(){
+      el.score.textContent=game.score;
+      el.combo.textContent=game.streak;
+      el.combo.insertAdjacentHTML('beforeend','<span class="hud-unit">連続</span>');
+      el.best.textContent=game.best;
+      el.round.textContent='ROUND '+String(game.round).padStart(2,'0');
+      el.level.textContent='LEVEL '+(game.pair.level+1)+' · '+LEVEL_NAMES[game.pair.level];
+      updateEvolution();
+    }
+    function displayFormula(node,obj){
+      node.textContent=obj.text;
+      node.className='formula'+(obj.text.length>17?' very-long':obj.text.length>12?' long':'');
+    }
+    function nextPair(){
+      game.pair=generatePair();
+      displayFormula(el.leftFormula,game.pair.left);
+      displayFormula(el.rightFormula,game.pair.right);
+      void el.leftFormula.offsetWidth;
+      el.leftFormula.classList.add('appear');
+      el.rightFormula.classList.add('appear');
+      el.left.setAttribute('aria-label','左の数式 '+game.pair.left.text+' を選ぶ');
+      el.right.setAttribute('aria-label','右の数式 '+game.pair.right.text+' を選ぶ');
+      el.left.classList.remove('correct','wrong');
+      el.right.classList.remove('correct','wrong');
+      el.message.className='message';
+      el.message.textContent='大きい数式のゴミ箱へ投げよう';
+      game.busy=false;
+      updateHUD();
+    }
+    function renderTimer(){
+      const seconds=Math.max(0,Math.ceil(game.timeLeft/1000));
+      el.timer.textContent='0:'+String(seconds).padStart(2,'0');
+      el.timerFill.style.width=(Math.max(0,game.timeLeft)/DURATION*100)+'%';
+      el.timerTrack.setAttribute('aria-valuenow',String(seconds));
+      el.timer.classList.toggle('danger',seconds<=10);
+      el.timerFill.classList.toggle('danger',seconds<=10);
+    }
+    function tick(){
+      if(!game.running||game.paused)return;
+      game.timeLeft=Math.max(0,game.deadline-performance.now());
+      renderTimer();
+      if(game.timeLeft<=0){finish();return;}
+      frame=requestAnimationFrame(tick);
+    }
+    function showPopup(side,good,text){
+      const lane=side==='left'?el.left:el.right;
+      const laneRect=lane.getBoundingClientRect(),arenaRect=el.arena.getBoundingClientRect();
+      el.popup.style.left=(laneRect.left+laneRect.width/2-arenaRect.left)+'px';
+      el.popup.style.top=(laneRect.top+96-arenaRect.top)+'px';
+      el.popup.className='popup '+(good?'good':'bad');
+      el.popup.textContent=text;
+      void el.popup.offsetWidth;
+      el.popup.classList.add('show');
+    }
+    function sparksAt(side,count){
+      if(reduceMotion)return;
+      const bin=side==='left'?el.leftBin:el.rightBin;
+      const anchor=bin.querySelector('.hit-anchor').getBoundingClientRect();
+      const stage=el.arena.getBoundingClientRect();
+      const x=anchor.left-stage.left,y=anchor.top-stage.top;
+      for(let i=0;i<count;i++){
+        const spark=document.createElement('span');
+        spark.className='spark';
+        spark.style.left=x+'px';
+        spark.style.top=y+'px';
+        const angle=Math.PI*2*i/count+(Math.random()-.5)*.4;
+        const distance=rand(40,100);
+        spark.style.setProperty('--dx',Math.cos(angle)*distance+'px');
+        spark.style.setProperty('--dy',Math.sin(angle)*distance-25+'px');
+        spark.style.setProperty('--spark-color',i%3===0?'#8efbd4':'#ffd37b');
+        el.sparks.appendChild(spark);
+        spark.addEventListener('animationend',()=>spark.remove(),{once:true});
+      }
+    }
+    function impact(side,correct,points,evolved){
+      const lane=side==='left'?el.left:el.right;
+      const bin=side==='left'?el.leftBin:el.rightBin;
+      lane.classList.add(correct?'correct':'wrong');
+      if(correct){
+        bin.classList.remove('ignite');
+        void bin.offsetWidth;
+        bin.classList.add('ignite');
+        window.setTimeout(()=>bin.classList.remove('ignite'),560);
+        if(evolved){
+          [el.leftBin,el.rightBin].forEach(b=>{b.classList.remove('evolve');void b.offsetWidth;b.classList.add('evolve');setTimeout(()=>b.classList.remove('evolve'),750);});
+          el.arena.classList.remove('evolution-flash');void el.arena.offsetWidth;el.arena.classList.add('evolution-flash');
+          window.setTimeout(()=>el.arena.classList.remove('evolution-flash'),600);
+          sound('evolve');
+        }else sound('hit');
+        sparksAt(side,evolved?20:10);
+        showPopup(side,true,evolved?'EVOLVE!':'IN! +'+points);
+        el.message.className='message good';
+        el.message.textContent=evolved?'進化！ '+TIER_NAMES[game.tier]+'　+'+points+'pt':'ナイススロー！ +'+points+'pt';
+      }else{
+        sound('miss');
+        showPopup(side,false,'MISS!');
+        el.message.className='message bad';
+        el.message.textContent='惜しい！ −3秒　'+game.pair.left.value+' vs '+game.pair.right.value;
+      }
+    }
+    function throwPaper(side){
+      if(!game.running||game.busy||game.paused)return;
+      game.busy=true;
+      const isCorrect=side===game.pair.answer;
+      const bin=side==='left'?el.leftBin:el.rightBin;
+      const anchor=bin.querySelector('.hit-anchor').getBoundingClientRect();
+      const paperRect=el.paper.getBoundingClientRect();
+      const dx=anchor.left+anchor.width/2-(paperRect.left+paperRect.width/2);
+      const dy=anchor.top+anchor.height/2-(paperRect.top+paperRect.height/2);
+      const shift=side==='left'?-1:1;
+      const frames=isCorrect?[
+        {transform:'translate(0px,0px) rotate(0deg) scale(1)',opacity:1,offset:0},
+        {transform:'translate('+(dx*.52)+'px,'+(dy*.48-85)+'px) rotate(105deg) scale(.8)',opacity:1,offset:.57},
+        {transform:'translate('+dx+'px,'+dy+'px) rotate(240deg) scale(.25)',opacity:0,offset:1}
+      ]:[
+        {transform:'translate(0px,0px) rotate(0deg) scale(1)',opacity:1,offset:0},
+        {transform:'translate('+(dx*.55)+'px,'+(dy*.48-75)+'px) rotate(95deg) scale(.85)',opacity:1,offset:.48},
+        {transform:'translate('+dx+'px,'+(dy-15)+'px) rotate(185deg) scale(.55)',opacity:1,offset:.70},
+        {transform:'translate('+(dx+shift*85)+'px,'+(dy+95)+'px) rotate(370deg) scale(.4)',opacity:0,offset:1}
+      ];
+      const currentSession=game.session;
+      sound('throw');
+      el.paper.classList.add('flying');
+      const animation=el.paper.querySelector('.paper-inner').animate(frames,{duration:reduceMotion?120:isCorrect?390:470,easing:'cubic-bezier(.23,.65,.37,1)',fill:'forwards'});
+      animation.finished.then(()=>{
+        animation.cancel();
+        el.paper.classList.remove('flying');
+        if(!game.running||currentSession!==game.session)return;
+        let points=0,evolved=false;
+        if(isCorrect){
+          game.streak++;game.correct++;
+          game.maxStreak=Math.max(game.maxStreak,game.streak);
+          points=10+Math.min(20,Math.floor((game.streak-1)/5)*5);
+          game.score+=points;
+          evolved=getTier(game.correct)>game.tier;
+        }else{
+          game.streak=0;
+          game.deadline-=3000;
+          game.timeLeft=Math.max(0,game.deadline-performance.now());
+          renderTimer();
+        }
         updateHUD();
-      }
-      function renderClock() {
-        const seconds = Math.ceil(state.timeLeft / 1000);
-        els.clock.textContent = '0:' + String(Math.max(0, seconds)).padStart(2, '0');
-        els.timeFill.style.width = (Math.max(0, state.timeLeft) / DURATION * 100) + '%';
-        els.timeTrack.setAttribute('aria-valuenow', String(Math.ceil(state.timeLeft / 1000)));
-        const danger = seconds <= 10;
-        els.clock.classList.toggle('danger', danger);
-        els.timeFill.classList.toggle('danger', danger);
-      }
-      function tick() {
-        if (!state.playing) return;
-        state.timeLeft = Math.max(0, state.deadline - performance.now());
-        renderClock();
-        if (state.timeLeft <= 0) { finish(); return; }
-        frame = requestAnimationFrame(tick);
-      }
-      function choose(side) {
-        if (!state.playing || state.busy) return;
-        state.busy = true;
-        const isCorrect = side === state.pair.answer;
-        const selected = side === 'left' ? els.leftCard : els.rightCard;
-        const correctCard = state.pair.answer === 'left' ? els.leftCard : els.rightCard;
-        const leftValue = state.pair.left.value;
-        const rightValue = state.pair.right.value;
-        const currentSession = state.session;
-        if (isCorrect) {
-          state.streak++;
-          state.correct++;
-          state.maxStreak = Math.max(state.maxStreak, state.streak);
-          const points = 10 + Math.min(20, Math.floor((state.streak - 1) / 5) * 5);
-          state.score += points;
-          els.result.className = 'result good';
-          els.result.textContent = '正解！ +' + points + 'pt　' + leftValue + ' vs ' + rightValue;
-          selected.classList.add('correct');
-        } else {
-          state.streak = 0;
-          state.deadline -= 3000;
-          els.result.className = 'result bad';
-          els.result.textContent = '惜しい！ −3秒　' + leftValue + ' vs ' + rightValue;
-          selected.classList.add('wrong');
-          correctCard.classList.add('reveal');
+        if(isCorrect){
+          el.score.classList.remove('bump');
+          void el.score.offsetWidth;
+          el.score.classList.add('bump');
         }
-        sound(isCorrect);
-        if (navigator.vibrate) navigator.vibrate(isCorrect ? 18 : [45, 30, 45]);
-        updateHUD();
-        window.setTimeout(() => {
-          if (!state.playing || currentSession !== state.session) return;
-          state.round++;
-          showPair();
-        }, 340);
+        impact(side,isCorrect,points,evolved);
+        if(navigator.vibrate)navigator.vibrate(isCorrect?18:[40,25,40]);
+        if(game.timeLeft<=0){window.setTimeout(()=>{if(game.running&&currentSession===game.session)finish();},400);return;}
+        window.setTimeout(()=>{
+          if(!game.running||currentSession!==game.session)return;
+          game.round++;nextPair();
+        },reduceMotion?100:280);
+      }).catch(()=>{});
+    }
+    function start(){
+      cancelAnimationFrame(frame);
+      game.session++;game.running=true;game.busy=false;game.paused=false;
+      game.score=0;game.streak=0;game.maxStreak=0;game.correct=0;game.round=1;game.tier=0;
+      game.timeLeft=DURATION;game.deadline=performance.now()+DURATION;
+      el.start.classList.remove('show');el.end.classList.remove('show');el.end.setAttribute('aria-hidden','true');
+      el.paper.classList.remove('flying');
+      el.leftBin.classList.remove('ignite','evolve');el.rightBin.classList.remove('ignite','evolve');
+      nextPair();renderTimer();frame=requestAnimationFrame(tick);
+    }
+    function finish(){
+      if(!game.running)return;
+      game.running=false;game.session++;cancelAnimationFrame(frame);
+      game.timeLeft=0;renderTimer();
+      const isNewBest=game.score>game.best;
+      if(isNewBest){game.best=game.score;saveBest(game.best);}
+      $('endKicker').textContent=isNewBest?'NEW PERSONAL BEST!':'TIME UP!';
+      $('endHeading').textContent=isNewBest?'自己ベスト更新！':'おつかれさま！';
+      $('endScore').textContent=game.score;
+      $('endCorrect').textContent=game.correct;
+      $('endCombo').textContent=game.maxStreak;
+      $('endBest').textContent=game.best;
+      $('startBest').textContent=game.best;
+      el.best.textContent=game.best;
+      el.end.classList.add('show');el.end.setAttribute('aria-hidden','false');
+      $('retryButton').focus();
+    }
+    $('startButton').addEventListener('click',start);
+    $('retryButton').addEventListener('click',start);
+    el.left.addEventListener('click',()=>throwPaper('left'));
+    el.right.addEventListener('click',()=>throwPaper('right'));
+    el.arena.addEventListener('pointerdown',event=>{
+      if(!game.running)return;
+      pointer={x:event.clientX,y:event.clientY,id:event.pointerId};
+    });
+    el.arena.addEventListener('pointerup',event=>{
+      if(!pointer||pointer.id!==event.pointerId)return;
+      const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
+      pointer=null;
+      if(Math.abs(dx)>36&&Math.abs(dx)>Math.abs(dy)*1.15)throwPaper(dx<0?'left':'right');
+    });
+    el.arena.addEventListener('pointercancel',()=>{pointer=null;});
+    document.addEventListener('keydown',event=>{
+      if(!game.running)return;
+      if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+        event.preventDefault();throwPaper(event.key==='ArrowLeft'?'left':'right');
       }
-      function start() {
-        cancelAnimationFrame(frame);
-        state.session++;
-        state.playing = true;
-        state.busy = false;
-        state.score = 0;
-        state.streak = 0;
-        state.maxStreak = 0;
-        state.correct = 0;
-        state.round = 1;
-        state.timeLeft = DURATION;
-        state.deadline = performance.now() + DURATION;
-        els.startOverlay.classList.remove('show');
-        els.endOverlay.classList.remove('show');
-        els.endOverlay.setAttribute('aria-hidden', 'true');
-        showPair();
-        renderClock();
-        frame = requestAnimationFrame(tick);
+    });
+    $('soundButton').addEventListener('click',()=>{
+      soundEnabled=!soundEnabled;
+      $('soundButton').textContent=soundEnabled?'♪':'♪̸';
+      $('soundButton').setAttribute('aria-label',soundEnabled?'効果音をオフにする':'効果音をオンにする');
+      if(soundEnabled)sound('hit');
+    });
+    document.addEventListener('visibilitychange',()=>{
+      if(!game.running)return;
+      if(document.hidden){
+        game.timeLeft=Math.max(0,game.deadline-performance.now());
+        game.paused=true;cancelAnimationFrame(frame);
+      }else{
+        game.deadline=performance.now()+game.timeLeft;
+        game.paused=false;frame=requestAnimationFrame(tick);
       }
-      function finish() {
-        if (!state.playing) return;
-        state.playing = false;
-        state.session++;
-        cancelAnimationFrame(frame);
-        state.timeLeft = 0;
-        renderClock();
-        const newBest = state.score > state.best;
-        if (newBest) { state.best = state.score; saveBest(state.best); }
-        updateHUD();
-        $('endKicker').textContent = newBest ? 'NEW PERSONAL BEST!' : 'TIME UP!';
-        $('endTitle').textContent = newBest ? '自己ベスト更新！' : 'おつかれさま！';
-        $('finalScore').textContent = state.score;
-        $('correctCount').textContent = state.correct;
-        $('maxCombo').textContent = state.maxStreak;
-        $('endBest').textContent = state.best;
-        $('startBest').textContent = state.best;
-        els.endOverlay.classList.add('show');
-        els.endOverlay.setAttribute('aria-hidden', 'false');
-        $('retryBtn').focus();
-      }
-
-      $('startBtn').addEventListener('click', start);
-      $('retryBtn').addEventListener('click', start);
-      els.leftCard.addEventListener('click', () => choose('left'));
-      els.rightCard.addEventListener('click', () => choose('right'));
-      els.arena.addEventListener('pointerdown', (event) => {
-        if (!state.playing) return;
-        pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
-      });
-      els.arena.addEventListener('pointerup', (event) => {
-        if (!pointerStart || pointerStart.id !== event.pointerId) return;
-        const dx = event.clientX - pointerStart.x;
-        const dy = event.clientY - pointerStart.y;
-        pointerStart = null;
-        if (Math.abs(dx) >= 35 && Math.abs(dx) > Math.abs(dy) * 1.2) choose(dx < 0 ? 'left' : 'right');
-      });
-      els.arena.addEventListener('pointercancel', () => { pointerStart = null; });
-      document.addEventListener('keydown', (event) => {
-        if (!state.playing) return;
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-          event.preventDefault();
-          choose(event.key === 'ArrowLeft' ? 'left' : 'right');
-        }
-      });
-      $('soundBtn').addEventListener('click', () => {
-        soundOn = !soundOn;
-        $('soundBtn').textContent = soundOn ? '♪' : '♪̸';
-        $('soundBtn').setAttribute('aria-label', soundOn ? '効果音をオフにする' : '効果音をオンにする');
-        if (soundOn) sound(true);
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (!state.playing) return;
-        if (document.hidden) {
-          cancelAnimationFrame(frame);
-          state.timeLeft = Math.max(0, state.deadline - performance.now());
-        } else {
-          if (state.timeLeft <= 0) finish();
-          else frame = requestAnimationFrame(tick);
-        }
-      });
-      els.best.textContent = state.best;
-      $('startBest').textContent = state.best;
-      renderClock();
-    })();
+    });
+    el.best.textContent=game.best;
+    $('startBest').textContent=game.best;
+    updateEvolution();renderTimer();
+  })();
   </script>
 </body>
 </html>
